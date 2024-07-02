@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.10.3...v0.11.0) (2024-07-02)
+
+
+### Features
+
+* cleaned up S3Artifact api ([c871923](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/c871923a4a394405688f3a1379f564dcb3a1e2ce))
+* replaced BaseLambda with Builder ([35ec83b](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/35ec83beaefd24521f7ed6edd5e050a573156967))
+
 ## [0.10.3](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.10.2...v0.10.3) (2024-06-29)
 
 
