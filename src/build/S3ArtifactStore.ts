@@ -65,17 +65,13 @@ export class S3ArtifactStore extends ComponentResource {
      */
     getArtifactVersion(version: string): S3Artifact {
         const path = `${this.args.artifactName}/${version}`;
-        return {
-            bucket: this.bucket,
-            path,
-            requestCloudfrontReadAccess: (distributionArn: pulumi.Output<string>) => {
-                this.readAccessRequests.push({ distributionArn, path });
-            },
-        };
+        return new S3Artifact(this.bucket, this.args.artifactName, version, (arn) => {
+            this.readAccessRequests.push({ distributionArn: arn, path });
+        });
     }
 
     /**
-     * Creates a bucket resource policy based on the received read requests.
+     * Creates a bucket resource policy based on the received read access requests.
      */
     createBucketPolicy() {
         new aws.s3.BucketPolicy(this.name, {
@@ -117,6 +113,6 @@ export interface S3ArtifactStoreArgs {
 }
 
 interface ReadAccessRequest {
-    distributionArn: pulumi.Output<string>
+    distributionArn: pulumi.Input<string>
     path: string;
 }

@@ -107,7 +107,7 @@ export class StaticWebsite extends ComponentResource {
                     originId: assetsOriginId,
                     domainName: args.assets.bucket.bucketRegionalDomainName,
                     originAccessControlId: oac.id,
-                    originPath: '/' + args.assets.path,
+                    originPath: '/' + args.assets.getPath(),
                 },
                 ...(integrations.map((integration, index) => {
                     switch (integration.type) {
