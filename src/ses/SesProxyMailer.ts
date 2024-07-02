@@ -1,4 +1,3 @@
-import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import { ComponentResourceOptions } from "@pulumi/pulumi";
 import { SimpleNodeLambda } from "../lambda";
@@ -11,31 +10,27 @@ import { SimpleNodeLambda } from "../lambda";
  *  - to send email from a different account by assuming another role.
  */
 export class SesProxyMailer extends SimpleNodeLambda {
-
     constructor(name: string, args: SesProxyMailerArgs, opts?: ComponentResourceOptions) {
         super(name, {
             codeDir: `${__dirname}/../../resources/ses-proxy-mailer`,
-            roleInlinePolicies: [
-                ...(args.assumeRoleArn ? [
-                    {
-                        name: "STS",
-                        policy: aws.iam.getPolicyDocumentOutput({
-                            statements: [{
-                                actions: ["sts:AssumeRole"],
-                                resources: [args.assumeRoleArn],
-                            }]
-                        }).apply(doc => doc.json),
-                    }
-                ] : [])
-            ],
+            roleInlinePolicies: args.assumeRoleArn ? [{
+                name: "STS",
+                policy: {
+                    Version: "2012-10-17",
+                    Statement: [{
+                        Effect: "Allow",
+                        Action: ["sts:AssumeRole"],
+                        Resource: [args.assumeRoleArn]
+                    }]
+                }
+            }] : [],
             environmentVariables: args.assumeRoleArn ? {
                 ASSUME_ROLE_ARN: args.assumeRoleArn
             } : undefined,
         }, opts, "pat:ses:SesProxyMailer");
     }
-
 }
 
 export interface SesProxyMailerArgs {
-    assumeRoleArn?: string | pulumi.Output<string>;
+    assumeRoleArn?: pulumi.Input<string>;
 }

@@ -1,2 +1,2 @@
-export * from "./BaseLambda";
+export * from "./Builder";
 export * from "./SimpleNodeLambda";

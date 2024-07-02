@@ -1,14 +1,23 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import { ComponentResourceOptions } from "@pulumi/pulumi";
-import { BaseLambda, BaseLambdaArgs } from "./BaseLambda";
+import { BaseLambdaArgs, Builder } from "./Builder";
 
 /**
  * Creates a Nodejs AWS Lambda with useful defaults for small & simple tasks.
  */
-export class SimpleNodeLambda extends BaseLambda {
+export class SimpleNodeLambda extends pulumi.ComponentResource {
+    readonly function: aws.lambda.Function;
+
     constructor(name: string, args: SimpleNodeLambdaArgs, opts?: ComponentResourceOptions, type?: string) {
-        super(type ?? "pat:lambda:SimpleNodeLambda", name, args, opts ?? {}, (logGroup, roleArn, vpcConfig) => ({
+        super(type ?? "pat:lambda:SimpleNodeLambda", name, args, opts);
+
+        const builder = new Builder(name, args, { parent: this });
+        const logGroup = builder.createLogGroup();
+        const role = builder.createRole();
+        const vpcConfig = builder.createVpcConfig();
+
+        this.function = new aws.lambda.Function(name, {
             description: args.codeDir.substring(args.codeDir.lastIndexOf('/') + 1),
             code: new pulumi.asset.AssetArchive({
                 ".": new pulumi.asset.FileArchive(args.codeDir),
@@ -16,7 +25,7 @@ export class SimpleNodeLambda extends BaseLambda {
             handler: `index.handler`,
             runtime: aws.lambda.Runtime.NodeJS20dX,
             architectures: ["arm64"],
-            role: roleArn,
+            role: role.arn,
             memorySize: args.memorySize ?? 128,
             timeout: args.timeout ?? 60,
             environment: {
@@ -27,7 +36,9 @@ export class SimpleNodeLambda extends BaseLambda {
                 logGroup: logGroup.name,
                 logFormat: "Text",
             },
-        }));
+        }, {
+            parent: this
+        });
     }
 }
 
