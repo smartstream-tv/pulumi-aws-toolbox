@@ -7,6 +7,10 @@ It's mostly useful for projects that follow these design ideas:
 * websites that are mostly static using S3 and CloudFront
 * backends implemented with AWS Lambda
 
+Install with
+
+    npm i @smartstream-tv/pulumi-aws-toolbox
+
 ## Components
 
 ### Vpc
