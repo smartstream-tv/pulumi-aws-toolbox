@@ -5,11 +5,8 @@ import { S3Artifact } from "../build/S3Artifact";
 import { CloudfrontChainedFunction } from "./CloudfrontChainedFunction";
 
 /**
- * Optionionated way of building a static website using CloudFront and S3.
- * 
- * Primarily, assets are loaded from S3 (specified by a S3Artifact). The bucket must be provided by you. Useful if
- *  - the bucket should be shared by several dev stacks and must therefore already exist during the CI build phase.
- *  - additional settings/permissions should be configured for the bucket (like cross-account access from prod)
+ * Creates a CloudFront distribution and a number of supporting resources to create a mostly static website.
+ * See the README.md for the full documentation.
  */
 export class StaticWebsite extends ComponentResource {
     readonly name: string;

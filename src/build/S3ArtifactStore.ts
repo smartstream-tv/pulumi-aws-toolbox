@@ -71,7 +71,7 @@ export class S3ArtifactStore extends ComponentResource {
     }
 
     /**
-     * Creates a bucket resource policy based on the received read access requests.
+     * Creates a bucket resource policy based on registered read access requests, for example, to allow a StaticWebsite resource to access the stored assets.
      */
     createBucketPolicy() {
         new aws.s3.BucketPolicy(this.name, {

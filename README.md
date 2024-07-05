@@ -43,8 +43,42 @@ Components:
 * [SesProxyMailer](src/ses/SesProxyMailer.ts): Creates a AWS Lambda to send email using SES using IPv6 and/or from another account.
 
 ### Website
+
+#### Static website
+The [StaticWebsite](src/website/StaticWebsite.ts) component creates a CloudFront distribution and a number of supporting resources to create a mostly static website. It's an opinionated component that tries to solve the common cases of website hosting - but it may not be suitable for all cases.
+
+The following things happen under the hood:
+- By default assets are loaded from S3.
+- DNS records are created in Route53.
+- Automatically handles URL rewrites, so that when the user loads example.com/product, it will internally load product/index.html from S3.
+- Efficient caching. The cache-control response header is set automatically to force the browser to re-validate resources before it can use them. If you have assets that never change, configure them with "immutablePaths".
+- HTTP basic auth can be enabled to protect the website, e.g. for dev.
+- Additonal resources can be integrated (see "integrations" argument) e.g.
+  - a backend can be integrate underneath /api
+  - environment specific configuration could be added at /config.json
+
+Primarily, assets are loaded from S3 (specified by an S3Artifact). The bucket must be provided by you, for example, using the S3ArtifactStore component. The bucket must be provided by you, to care for cases where
+the bucket should be shared by several dev stacks and must therefore already exist during the CI build phase or additional settings/permissions should be configured for the bucket (like cross-account access from prod).
+
+Example:
+```typescript
+const artifactStore = new pat.build.S3ArtifactStore(`my-artifact`, {
+    artifactName: "website",
+});
+
+const portal = new pat.website.StaticWebsite(`my-website`, {
+    acmCertificateArn_usEast1: "arn:aws:acm:us-east-1:111111111111:certificate/xxxxxxxxx",
+    assets: artifactStore.getArtifactVersion("1.0"),
+    hostedZoneId: "Z11111111111111111111"
+});
+
+artifactStore.createBucketPolicy();
+```
+Afterwards, upload your website assets into s3://my-artifact-ACCOUNT-ID/website/1.0 and you're done.
+
+### Build
 Components:
-* [StaticWebsite](src/website/StaticWebsite.ts): Optionionated way of building a static website using CloudFront and S3.
+* [S3ArtifactStore](src/build/S3ArtifactStore.ts): Creates a S3 bucket where build artifacts can be stored.
 
 
 ## Scripts
