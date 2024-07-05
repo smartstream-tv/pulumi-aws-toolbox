@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.11.0...v0.12.0) (2024-07-05)
+
+
+### Features
+
+* changed pulumi state bucket name ([5d8c559](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/5d8c559d36d25166c51ac417cc19a4db27d4ec62))
+
 ## [0.11.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.10.3...v0.11.0) (2024-07-02)
 
 
