@@ -2,7 +2,8 @@
 set -e
 
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
-BUCKET="pulumi-state-${AWS_ACCOUNT_ID}"
+AWS_REGION=$(aws configure get region)
+BUCKET="pulumi-state-${AWS_REGION}-${AWS_ACCOUNT_ID}"
 
 mkdir -p ~/.pulumi
 cat >~/.pulumi/credentials.json <<EOL
