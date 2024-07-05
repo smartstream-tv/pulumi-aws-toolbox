@@ -62,11 +62,13 @@ the bucket should be shared by several dev stacks and must therefore already exi
 
 Example:
 ```typescript
+import * as pat from "@smartstream-tv/pulumi-aws-toolbox";
+
 const artifactStore = new pat.build.S3ArtifactStore(`my-artifact`, {
     artifactName: "website",
 });
 
-const portal = new pat.website.StaticWebsite(`my-website`, {
+new pat.website.StaticWebsite(`my-website`, {
     acmCertificateArn_usEast1: "arn:aws:acm:us-east-1:111111111111:certificate/xxxxxxxxx",
     assets: artifactStore.getArtifactVersion("1.0"),
     hostedZoneId: "Z11111111111111111111"
