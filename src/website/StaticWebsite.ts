@@ -3,6 +3,7 @@ import * as pulumi from "@pulumi/pulumi";
 import { ComponentResource, ComponentResourceOptions } from "@pulumi/pulumi";
 import { S3Artifact } from "../build/S3Artifact";
 import { CloudfrontChainedFunction } from "./CloudfrontChainedFunction";
+import { CloudfrontLogBucket } from "./CloudfrontLogBucket";
 
 /**
  * Creates a CloudFront distribution and a number of supporting resources to create a mostly static website.
@@ -98,6 +99,8 @@ export class StaticWebsite extends ComponentResource {
         }, { parent: this });
         const integrations = args.integrations || [];
 
+        const logBucket = new CloudfrontLogBucket(`${name}-log`, { parent: this });
+
         this.distribution = new aws.cloudfront.Distribution(name, {
             origins: [
                 {
@@ -168,7 +171,11 @@ export class StaticWebsite extends ComponentResource {
                     responseCode: 404,
                     responsePagePath: "/404.html",
                 },
-            ]
+            ],
+            loggingConfig: {
+                bucket: logBucket.bucketRegionalDomainName,
+                includeCookies: false
+            },
         }, { parent: this });
 
         // read access to assets bucket
