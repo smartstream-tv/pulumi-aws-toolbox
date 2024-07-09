@@ -4,6 +4,7 @@ import { ComponentResource, ComponentResourceOptions } from "@pulumi/pulumi";
 import { S3Artifact } from "../build/S3Artifact";
 import { CloudfrontChainedFunction } from "./CloudfrontChainedFunction";
 import { CloudfrontLogBucket } from "./CloudfrontLogBucket";
+import { SingleAssetBucket } from "./SingleAssetBucket";
 
 /**
  * Creates a CloudFront distribution and a number of supporting resources to create a mostly static website.
@@ -90,16 +91,19 @@ export class StaticWebsite extends ComponentResource {
             functionAssociations: [viewerRequestFunc.toAssociation(), immutableResponseFunc.toAssociation()],
         }));
 
-        // aux bucket
-        const auxBucket = new aws.s3.Bucket(`${name}-aux`, {}, { parent: this });
-        const auxBucketPublicAccess = new aws.s3.BucketPublicAccessBlock(`${name}-aux`, {
-            bucket: auxBucket.id,
-            blockPublicAcls: true,
-            ignorePublicAcls: true,
-        }, { parent: this });
-        const integrations = args.integrations || [];
 
         const logBucket = new CloudfrontLogBucket(`${name}-log`, { parent: this });
+
+        const singleAssetBucket = new SingleAssetBucket(`${name}-asset`, {
+            assets: (args.integrations ?? []).filter(i => i.type == "SingleAssetIntegration").map(i => {
+                const integration = i as SingleAssetIntegration;
+                return {
+                    content: integration.content,
+                    contentType: integration.contentType,
+                    path: integration.path,
+                };
+            })
+        }, { parent: this });
 
         this.distribution = new aws.cloudfront.Distribution(name, {
             origins: [
@@ -109,24 +113,7 @@ export class StaticWebsite extends ComponentResource {
                     originAccessControlId: oac.id,
                     originPath: '/' + args.assets.getPath(),
                 },
-                ...(integrations.map((integration, index) => {
-                    switch (integration.type) {
-                        case "SingleAssetIntegration":
-                            new aws.s3.BucketObject(`${name}-${integration.path}`, {
-                                bucket: auxBucket,
-                                key: `single-asset${integration.path}`,
-                                content: integration.content,
-                                contentType: integration.contentType
-                            });
-                            return {
-                                originId: `integration-${index}`,
-                                domainName: auxBucket.bucketRegionalDomainName,
-                                originAccessControlId: oac.id,
-                                originPath: `/single-asset`,
-                            };
-                    }
-                    throw new Error(`Unsupported integration ${integration.type}`);
-                }))
+                singleAssetBucket.getOriginConfig(oac),
             ],
             originGroups: [],
             enabled: true,
@@ -140,18 +127,12 @@ export class StaticWebsite extends ComponentResource {
                 functionAssociations: [viewerRequestFunc.toAssociation(), mutableResponseFunc.toAssociation()],
             },
             orderedCacheBehaviors: [
-                ...(integrations.map((integration, index) => {
-                    switch (integration.type) {
-                        case "SingleAssetIntegration":
-                            return {
-                                ...stdCacheBehavior(),
-                                pathPattern: integration.path,
-                                targetOriginId: `integration-${index}`,
-                                functionAssociations: [viewerRequestFunc.toAssociation(), mutableResponseFunc.toAssociation()],
-                            };
-                    }
-                    throw new Error(`Unsupported integration ${integration.type}`);
-                })),
+                ...(singleAssetBucket.assets.map((asset) => ({
+                    ...stdCacheBehavior(),
+                    pathPattern: asset.path,
+                    targetOriginId: singleAssetBucket.originId,
+                    functionAssociations: [viewerRequestFunc.toAssociation(), mutableResponseFunc.toAssociation()],
+                }))),
                 ...immutableCacheBehaviors
             ],
             priceClass: "PriceClass_100",
@@ -176,42 +157,15 @@ export class StaticWebsite extends ComponentResource {
                 bucket: logBucket.bucketRegionalDomainName,
                 includeCookies: false
             },
-        }, { parent: this });
+        }, {
+            parent: this,
+            deleteBeforeReplace: true
+        });
 
         // read access to assets bucket
         this.args.assets.requestCloudfrontReadAccess(this.distribution.arn);
 
-        // read access to aux bucket
-        new aws.s3.BucketPolicy(this.name, {
-            bucket: auxBucket.id,
-            policy: aws.iam.getPolicyDocumentOutput({
-                statements: [{
-                    sid: `CloudFront-Read`,
-                    principals: [{
-                        type: "Service",
-                        identifiers: ["cloudfront.amazonaws.com"],
-                    }],
-                    actions: [
-                        "s3:GetObject",
-                        "s3:ListBucket",
-                    ],
-                    resources: [
-                        pulumi.interpolate`${auxBucket.arn}`,
-                        pulumi.interpolate`${auxBucket.arn}/*`,
-                    ],
-                    conditions: [
-                        {
-                            test: "StringEquals",
-                            variable: "AWS:SourceArn",
-                            values: [this.distribution.arn],
-                        }
-                    ],
-                }],
-            }).json,
-        }, {
-            parent: this,
-            dependsOn: [auxBucketPublicAccess]
-        });
+        singleAssetBucket.setupAccessPolicy(this.distribution.arn);
 
         // DNS records
         const cloudfrontZoneId = "Z2FDTNDATAQYW2";
@@ -224,7 +178,7 @@ export class StaticWebsite extends ComponentResource {
                 name: this.distribution.domainName,
                 evaluateTargetHealth: false
             }]
-        }, { parent: this });
+        }, { parent: this, deleteBeforeReplace: true });
         new aws.route53.Record(`${name}-aaaa`, {
             zoneId: zone.zoneId,
             name: args.subDomain || "",
@@ -234,7 +188,7 @@ export class StaticWebsite extends ComponentResource {
                 name: this.distribution.domainName,
                 evaluateTargetHealth: false
             }]
-        }, { parent: this });
+        }, { parent: this, deleteBeforeReplace: true });
     }
 }
 
