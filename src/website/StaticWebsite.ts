@@ -1,6 +1,5 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
-import { ComponentResource, ComponentResourceOptions } from "@pulumi/pulumi";
 import { S3Artifact } from "../build/S3Artifact";
 import { CloudfrontLogBucket } from "./CloudfrontLogBucket";
 import { SingleAssetBucket } from "./SingleAssetBucket";
@@ -11,14 +10,14 @@ import { createCloudfrontDnsRecords, stdCacheBehavior } from "./utils";
  * Creates a CloudFront distribution and a number of supporting resources to create a mostly static website.
  * See the README.md for the full documentation.
  */
-export class StaticWebsite extends ComponentResource {
+export class StaticWebsite extends pulumi.ComponentResource {
     readonly name: string;
     readonly domain: pulumi.Output<string>;
 
     private args: WebsiteArgs;
     private distribution: aws.cloudfront.Distribution;
 
-    constructor(name: string, args: WebsiteArgs, opts?: ComponentResourceOptions) {
+    constructor(name: string, args: WebsiteArgs, opts?: pulumi.CustomResourceOptions) {
         super("pat:website:StaticWebsite", name, args, opts);
         this.args = args;
         this.name = name;
@@ -55,7 +54,7 @@ export class StaticWebsite extends ComponentResource {
             functionAssociations: [stdViewerRequest, immutableViewerResponse],
         }));
 
-        const logBucket = new CloudfrontLogBucket(`${name}-log`, { parent: this });
+        const logBucket = new CloudfrontLogBucket(`${name}-log`, {}, { parent: this });
 
         const singleAssetBucket = new SingleAssetBucket(`${name}-asset`, {
             assets: (args.integrations ?? []).filter(i => i.type == "SingleAssetIntegration").map(i => {
