@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.12.0...v0.13.0) (2024-07-10)
+
+
+### Features
+
+* StaticWebsite storing access logs ([3aeda59](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/3aeda594752aee0fa820ec398877444477e88906))
+
+
+### Bug Fixes
+
+* corrected parent of cloudfront log bucket ([db74999](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/db749993d082741e32ba5af9c712a65a71dd6880))
+
 ## [0.12.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.11.0...v0.12.0) (2024-07-05)
 
 
