@@ -53,6 +53,7 @@ The following things happen under the hood:
 - Automatically handles URL rewrites, so that when the user loads example.com/product, it will internally load product/index.html from S3.
 - Efficient caching. The cache-control response header is set automatically to force the browser to re-validate resources before it can use them. If you have assets that never change, configure them with "immutablePaths".
 - HTTP basic auth can be enabled to protect the website, e.g. for dev.
+- Access logs are stored in S3.
 - Additonal resources can be integrated (see "integrations" argument) e.g.
   - a backend can be integrate underneath /api
   - environment specific configuration could be added at /config.json

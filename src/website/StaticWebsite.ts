@@ -5,6 +5,7 @@ import { S3Artifact } from "../build/S3Artifact";
 import { CloudfrontLogBucket } from "./CloudfrontLogBucket";
 import { SingleAssetBucket } from "./SingleAssetBucket";
 import { ViewerRequestFunction, ViewerResponseFunction } from "./cloudfront-function";
+import { createCloudfrontDnsRecords, stdCacheBehavior } from "./utils";
 
 /**
  * Creates a CloudFront distribution and a number of supporting resources to create a mostly static website.
@@ -38,38 +39,19 @@ export class StaticWebsite extends ComponentResource {
             .withCacheControl(false)
             .build();
 
-        function stdCacheBehavior() {
-            return {
-                allowedMethods: ["HEAD", "GET"],
-                cachedMethods: ["HEAD", "GET"],
-                viewerProtocolPolicy: "redirect-to-https",
-                minTtl: 60,
-                defaultTtl: 60,
-                maxTtl: 60,
-                forwardedValues: {
-                    cookies: {
-                        forward: "none",
-                    },
-                    headers: [],
-                    queryString: false,
-                },
-                compress: true,
-            };
-        }
-
         const oac = new aws.cloudfront.OriginAccessControl(name, {
             originAccessControlOriginType: "s3",
             signingBehavior: "always",
             signingProtocol: "sigv4",
         }, { parent: this });
 
-        const assetsOriginId = "assets";
+        const defaultOriginId = "default";
 
         const immutableViewerResponse = new ViewerResponseFunction(`${name}-immutable-response`, this).withCacheControl(true).build();
         const immutableCacheBehaviors = (args.immutablePaths ? args.immutablePaths : []).map(pathPattern => ({
             ...stdCacheBehavior(),
             pathPattern,
-            targetOriginId: assetsOriginId,
+            targetOriginId: defaultOriginId,
             functionAssociations: [stdViewerRequest, immutableViewerResponse],
         }));
 
@@ -89,7 +71,7 @@ export class StaticWebsite extends ComponentResource {
         this.distribution = new aws.cloudfront.Distribution(name, {
             origins: [
                 {
-                    originId: assetsOriginId,
+                    originId: defaultOriginId,
                     domainName: args.assets.bucket.bucketRegionalDomainName,
                     originAccessControlId: oac.id,
                     originPath: '/' + args.assets.getPath(),
@@ -104,7 +86,7 @@ export class StaticWebsite extends ComponentResource {
             defaultRootObject: "index.html",
             defaultCacheBehavior: {
                 ...stdCacheBehavior(),
-                targetOriginId: assetsOriginId,
+                targetOriginId: defaultOriginId,
                 functionAssociations: [stdViewerRequest, stdViewerResponse],
             },
             orderedCacheBehaviors: [
@@ -143,33 +125,11 @@ export class StaticWebsite extends ComponentResource {
             deleteBeforeReplace: true
         });
 
-        // read access to assets bucket
         this.args.assets.requestCloudfrontReadAccess(this.distribution.arn);
 
         singleAssetBucket.setupAccessPolicy(this.distribution.arn);
 
-        // DNS records
-        const cloudfrontZoneId = "Z2FDTNDATAQYW2";
-        new aws.route53.Record(`${name}-a`, {
-            zoneId: zone.zoneId,
-            name: args.subDomain || "",
-            type: "A",
-            aliases: [{
-                zoneId: cloudfrontZoneId,
-                name: this.distribution.domainName,
-                evaluateTargetHealth: false
-            }]
-        }, { parent: this, deleteBeforeReplace: true });
-        new aws.route53.Record(`${name}-aaaa`, {
-            zoneId: zone.zoneId,
-            name: args.subDomain || "",
-            type: "AAAA",
-            aliases: [{
-                zoneId: cloudfrontZoneId,
-                name: this.distribution.domainName,
-                evaluateTargetHealth: false
-            }]
-        }, { parent: this, deleteBeforeReplace: true });
+        createCloudfrontDnsRecords(name, this.distribution, zone.id, args.subDomain, this);
     }
 }
 
