@@ -2,9 +2,9 @@ import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import { ComponentResource, ComponentResourceOptions } from "@pulumi/pulumi";
 import { S3Artifact } from "../build/S3Artifact";
-import { CloudfrontChainedFunction } from "./CloudfrontChainedFunction";
 import { CloudfrontLogBucket } from "./CloudfrontLogBucket";
 import { SingleAssetBucket } from "./SingleAssetBucket";
+import { ViewerRequestFunction, ViewerResponseFunction } from "./cloudfront-function";
 
 /**
  * Creates a CloudFront distribution and a number of supporting resources to create a mostly static website.
@@ -25,37 +25,18 @@ export class StaticWebsite extends ComponentResource {
         const zone = aws.route53.Zone.get("zone", args.hostedZoneId);
         this.domain = args.subDomain ? pulumi.interpolate`${args.subDomain}.${zone.name}` : zone.name;
 
-        const basicAuthEnabled = args.basicAuth != null;
-        const viewerRequestFunc = new CloudfrontChainedFunction(`${name}-viewer-request`, {
-            eventType: "viewer-request",
-            handlerChain: [
-                ...(basicAuthEnabled ? [{
-                    name: "basicAuthHandler",
-                    replacements: {
-                        "__BASIC_AUTH__": Buffer.from(`${args.basicAuth?.username}:${args.basicAuth?.password}`).toString('base64'),
-                    }
-                }] : []),
-                {
-                    name: "indexRewriteHandler",
-                },
-            ],
-        }, { parent: this });
+        const stdViewerRequest = args.basicAuth ?
+            new ViewerRequestFunction(`${name}-std-viewer-request`, this)
+                .withBasicAuth(args.basicAuth.username, args.basicAuth.password)
+                .withIndexRewrite()
+                .build() :
+            new ViewerRequestFunction(`${name}-std-viewer-request`, this)
+                .withIndexRewrite()
+                .build();
 
-        const immutableResponseFunc = new CloudfrontChainedFunction(`${name}-immutable-response`, {
-            eventType: "viewer-response",
-            handlerChain: [{
-                name: "cacheControlHandler",
-                replacements: { "__IMMUTABLE__": "true" },
-            }],
-        }, { parent: this });
-
-        const mutableResponseFunc = new CloudfrontChainedFunction(`${name}-mutable-response`, {
-            eventType: "viewer-response",
-            handlerChain: [{
-                name: "cacheControlHandler",
-                replacements: { "__IMMUTABLE__": "false" },
-            }],
-        }, { parent: this });
+        const stdViewerResponse = new ViewerResponseFunction(`${name}-std-viewer-response`, this)
+            .withCacheControl(false)
+            .build();
 
         function stdCacheBehavior() {
             return {
@@ -84,13 +65,13 @@ export class StaticWebsite extends ComponentResource {
 
         const assetsOriginId = "assets";
 
+        const immutableViewerResponse = new ViewerResponseFunction(`${name}-immutable-response`, this).withCacheControl(true).build();
         const immutableCacheBehaviors = (args.immutablePaths ? args.immutablePaths : []).map(pathPattern => ({
             ...stdCacheBehavior(),
             pathPattern,
             targetOriginId: assetsOriginId,
-            functionAssociations: [viewerRequestFunc.toAssociation(), immutableResponseFunc.toAssociation()],
+            functionAssociations: [stdViewerRequest, immutableViewerResponse],
         }));
-
 
         const logBucket = new CloudfrontLogBucket(`${name}-log`, { parent: this });
 
@@ -124,14 +105,14 @@ export class StaticWebsite extends ComponentResource {
             defaultCacheBehavior: {
                 ...stdCacheBehavior(),
                 targetOriginId: assetsOriginId,
-                functionAssociations: [viewerRequestFunc.toAssociation(), mutableResponseFunc.toAssociation()],
+                functionAssociations: [stdViewerRequest, stdViewerResponse],
             },
             orderedCacheBehaviors: [
                 ...(singleAssetBucket.assets.map((asset) => ({
                     ...stdCacheBehavior(),
                     pathPattern: asset.path,
                     targetOriginId: singleAssetBucket.originId,
-                    functionAssociations: [viewerRequestFunc.toAssociation(), mutableResponseFunc.toAssociation()],
+                    functionAssociations: [stdViewerRequest, stdViewerResponse],
                 }))),
                 ...immutableCacheBehaviors
             ],
