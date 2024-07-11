@@ -31,17 +31,17 @@ export class Builder {
             assumeRolePolicy: assumeRolePolicyForAwsService("lambda"),
         }, this.opts);
 
-        // attach default policy for VPC and logging
+        // attach execution policy for VPC and logging
         if (this.args.vpc != undefined) {
-            new aws.iam.RolePolicyAttachment(`${this.name}-default`, {
+            new aws.iam.RolePolicyAttachment(`${this.name}-execute`, {
                 role: role,
                 policyArn: aws.iam.ManagedPolicies.AWSLambdaVPCAccessExecutionRole,
-            });
+            }, this.opts);
         } else {
-            new aws.iam.RolePolicyAttachment(`${this.name}-default`, {
+            new aws.iam.RolePolicyAttachment(`${this.name}-execute`, {
                 role: role,
                 policyArn: aws.iam.ManagedPolicies.AWSLambdaBasicExecutionRole,
-            });
+            }, this.opts);
         }
 
         // create user policies - not using 'inlinePolicies' property because removal behavior is exteremly suprising
@@ -49,13 +49,13 @@ export class Builder {
             new aws.iam.RolePolicyAttachment(`${this.name}-${index}`, {
                 role: role,
                 policyArn,
-            });
+            }, this.opts);
         });
         this.args.roleInlinePolicies?.forEach(inlinePolicy => {
             new aws.iam.RolePolicy(`${this.name}-${inlinePolicy.name}`, {
                 role: role,
                 policy: inlinePolicy.policy,
-            });
+            }, this.opts);
         });
 
         return role;
