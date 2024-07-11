@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.13.0...v0.13.1) (2024-07-11)
+
+
+### Bug Fixes
+
+* lambda Builder creating resources for wrong parent ([a7d94e9](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/a7d94e9b4c7da204c34cf632dbea666d606ade41))
+
 ## [0.13.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.12.0...v0.13.0) (2024-07-10)
 
 
