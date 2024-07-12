@@ -49,6 +49,7 @@ The [StaticWebsite](src/website/StaticWebsite.ts) component creates a CloudFront
 
 The following things happen under the hood:
 - By default assets are loaded from S3.
+- HTTPS handled by CloudFront, using a free HTTPS certificate from AWS.
 - DNS records are created in Route53.
 - Automatically handles URL rewrites, so that when the user loads example.com/product, it will internally load product/index.html from S3.
 - Efficient caching. The cache-control response header is set automatically to force the browser to re-validate resources before it can use them. If you have assets that never change, configure them with "immutablePaths".
@@ -57,6 +58,7 @@ The following things happen under the hood:
 - Additonal resources can be integrated (see "integrations" argument) e.g.
   - a backend can be integrate underneath /api
   - environment specific configuration could be added at /config.json
+- Automatically sets common HTTP security headers for responses.
 
 Primarily, assets are loaded from S3 (specified by an S3Artifact). The bucket must be provided by you, for example, using the S3ArtifactStore component. The bucket must be provided by you, to care for cases where
 the bucket should be shared by several dev stacks and must therefore already exist during the CI build phase or additional settings/permissions should be configured for the bucket (like cross-account access from prod).
