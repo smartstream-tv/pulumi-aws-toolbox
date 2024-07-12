@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.14.0...v0.14.1) (2024-07-12)
+
+
+### Bug Fixes
+
+* enabled sending security headers for StaticWebsite by default ([e749796](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/e749796ba58be423467d43d6fa100bc0513c3f1b))
+
 ## [0.14.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.13.1...v0.14.0) (2024-07-12)
 
 
