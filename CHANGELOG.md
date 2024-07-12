@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.13.1...v0.14.0) (2024-07-12)
+
+
+### Features
+
+* added setting website security headers, fixed handler chain logic ([4bc460b](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/4bc460ba40b51e456c64b485ef7d8428b781cb8a))
+
 ## [0.13.1](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.13.0...v0.13.1) (2024-07-11)
 
 
