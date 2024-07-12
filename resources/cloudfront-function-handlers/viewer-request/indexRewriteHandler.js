@@ -1,16 +1,11 @@
 function indexRewriteHandler(request) {
-    // Check whether the URI is missing a file name.
     if (request.uri.endsWith('/')) {
+        // the URI is missing a file name
         request.uri += 'index.html';
-        return request;
-    }
-
-    // Check whether the URI is missing a file extension.
-    if (!request.uri.includes('.')) {
+    } else if (!request.uri.includes('.')) {
+        // the URI is missing a file extension
         request.uri += '/index.html';
-        return request;
     }
 
-    return null;
+    return {request};
 }
-
