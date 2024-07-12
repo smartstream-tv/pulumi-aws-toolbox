@@ -36,6 +36,7 @@ export class StaticWebsite extends pulumi.ComponentResource {
 
         const stdViewerResponse = new ViewerResponseFunction(`${name}-std-viewer-response`, this)
             .withCacheControl(false)
+            .withSecurityHeaders()
             .build();
 
         const oac = new aws.cloudfront.OriginAccessControl(name, {
