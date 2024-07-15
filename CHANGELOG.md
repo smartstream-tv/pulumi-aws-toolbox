@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.15.0...v0.15.1) (2024-07-15)
+
+
+### Bug Fixes
+
+* aws login failing gracefully ([4651eca](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/4651eca14d0ec75903de14969e8c193784bb573b))
+
 ## [0.15.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.14.1...v0.15.0) (2024-07-15)
 
 
