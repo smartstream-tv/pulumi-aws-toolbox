@@ -5,7 +5,7 @@
     },
     "bin": {
       "ec2-postgresql-connect": ".bin/ec2-postgresql-connect.sh",
-      "pulumi-s3-login": "./bin/pulumi-s3-login.sh"
+      "pulumi-aws-login": "./bin/pulumi-aws-login.sh"
     },
     "scripts": {
     "build": "tsc",

@@ -88,10 +88,10 @@ Components:
 
 ## Scripts
 
-### pulumi-s3-login
-By convention we're using Pulumi's S3 backend, with a bucket named "pulumi-state-{AWS_REGION}-{AWS_ACCOUNT_ID}".
+### pulumi-aws-login
+By convention we're using Pulumi's AWS S3 backend, with a bucket named "pulumi-state-{AWS_REGION}-{AWS_ACCOUNT_ID}".
 You can configure Pulumi to use this bucket by running
 
-    npx pulumi-s3-login
+    npx pulumi-aws-login
 
 This will configure Pulumi to use the bucket of your current AWS account. The bucket must already exist.
