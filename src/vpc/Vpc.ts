@@ -29,6 +29,7 @@ export class Vpc extends ComponentResource implements IVpc {
     readonly vpcId: Output<string>;
 
     private readonly eicSecurityGroup: aws.ec2.SecurityGroup;
+    private readonly subnets: aws.ec2.Subnet[];
     private readonly vpc: aws.ec2.Vpc;
 
     constructor(name: string, args: VpcArgs, opts?: ComponentResourceOptions) {
@@ -68,24 +69,31 @@ export class Vpc extends ComponentResource implements IVpc {
             },
         }, { parent: this });
 
-        const publicSubnet = [
+        const publicSubnets = [
             this.createPublicSubnet("a", this.vpc, internetGateway),
             this.createPublicSubnet("b", this.vpc, internetGateway),
             this.createPublicSubnet("c", this.vpc, internetGateway),
         ];
 
-        const privateSubnet = [
+        const privateSubnets = [
             this.createPrivateSubnet("a", this.vpc, ipv6EgressGateway),
             this.createPrivateSubnet("b", this.vpc, ipv6EgressGateway),
             this.createPrivateSubnet("c", this.vpc, ipv6EgressGateway),
         ];
 
         this.cidrIpv6 = this.vpc.ipv6CidrBlock;
-        this.privateSubnetIds = privateSubnet.map(obj => obj.subnet.id);
-        this.publicSubnetIds = publicSubnet.map(obj => obj.subnet.id);
+        this.privateSubnetIds = privateSubnets.map(subnet => subnet.id);
+        this.publicSubnetIds = publicSubnets.map(subnet => subnet.id);
+        this.subnets = publicSubnets.concat(privateSubnets);
 
         const eic = this.createInstanceConnectEndpoint(this.privateSubnetIds[0]);
         this.eicSecurityGroup = eic.sg;
+    }
+
+    getSubnet(subnetId: pulumi.Input<string>) {
+        const subnet = this.subnets.find(subnet => subnet.id === subnetId);
+        if (!subnet) throw new Error(`Subnet ${subnetId} not found`);
+        return subnet;
     }
 
     private createPublicSubnet(az: string, vpc: aws.ec2.Vpc, internetGateway: aws.ec2.InternetGateway) {
@@ -131,9 +139,7 @@ export class Vpc extends ComponentResource implements IVpc {
             routeTableId: routeTable.id,
         }, { parent: this });
 
-        return {
-            subnet
-        };
+        return subnet;
     }
 
     private createPrivateSubnet(az: string, vpc: aws.ec2.Vpc, ipv6EgressGateway: aws.ec2.EgressOnlyInternetGateway) {
@@ -175,9 +181,7 @@ export class Vpc extends ComponentResource implements IVpc {
             routeTableId: routeTable.id,
         }, { parent: this });
 
-        return {
-            subnet
-        };
+        return subnet;
     }
 
     /**
@@ -203,7 +207,7 @@ export class Vpc extends ComponentResource implements IVpc {
         return `10.0.${subnetIndex * multiplier}.0/${this.ipv4MaskBits}`;
     }
 
-    private createInstanceConnectEndpoint(subnetId: Output<string>) {
+    private createInstanceConnectEndpoint(subnetId: pulumi.Input<string>) {
         const sg = new aws.ec2.SecurityGroup(`${this.name}-eic`, {
             vpcId: this.vpc.id,
         }, { parent: this });

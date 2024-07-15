@@ -1,5 +1,5 @@
 import * as aws from "@pulumi/aws";
-import { ComponentResource, ComponentResourceOptions, Output, output } from "@pulumi/pulumi";
+import * as pulumi from "@pulumi/pulumi";
 import { StdSecurityGroup } from "./StdSecurityGroup";
 import { Vpc } from "./Vpc";
 
@@ -7,10 +7,10 @@ import { Vpc } from "./Vpc";
  * Creates a jumphost EC2 instance.
  * The instance does not expose a public SSH port. Instead we use AWS EC2 Instance Connect (EIC) for a secure connection to the jumphost.
  */
-export class Jumphost extends ComponentResource {
-    readonly instanceId: Output<string>;
+export class Jumphost extends pulumi.ComponentResource {
+    readonly instanceId: pulumi.Output<string>;
 
-    constructor(name: string, args: JumphostArgs, opts?: ComponentResourceOptions) {
+    constructor(name: string, args: JumphostArgs, opts?: pulumi.ComponentResourceOptions) {
         super("pat:vpc:Jumphost", name, args, opts);
 
         const jumphostSubnetId = args.vpc.privateSubnetIds[0];
@@ -23,7 +23,7 @@ export class Jumphost extends ComponentResource {
 
         args.vpc.grantEicIngressFor(`${name}-eic`, jumphostSg.securityGroupId);
 
-        const ami = output(aws.ec2.getAmi({
+        const ami = pulumi.output(aws.ec2.getAmi({
             owners: ["amazon"],
             mostRecent: true,
             filters: [
