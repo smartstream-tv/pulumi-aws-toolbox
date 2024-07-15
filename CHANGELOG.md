@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.15.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.14.1...v0.15.0) (2024-07-15)
+
+
+### Features
+
+* added Ec2PostgresqlDatabase ([b546177](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/b546177329f542178324ef1ce65a3138b80ee0f6))
+* renamed pulumi-s3-login to pulumi-aws-login ([f3c54fa](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/f3c54fa32b2069dee6e6886e198902bd6793976c))
+* Vpc support for IPAM pools ([168477e](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/168477e8e59283fa814a3b289d9008e5d2c9bb14))
+
 ## [0.14.1](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.14.0...v0.14.1) (2024-07-12)
 
 

@@ -1,13 +1,13 @@
 {
-    "name": "@smartstream-tv/pulumi-aws-toolbox",
-    "repository": {
-      "url": "https://github.com/smartstream-tv/pulumi-aws-toolbox"
-    },
-    "bin": {
-      "ec2-postgresql-connect": ".bin/ec2-postgresql-connect.sh",
-      "pulumi-aws-login": "./bin/pulumi-aws-login.sh"
-    },
-    "scripts": {
+  "name": "@smartstream-tv/pulumi-aws-toolbox",
+  "repository": {
+    "url": "https://github.com/smartstream-tv/pulumi-aws-toolbox"
+  },
+  "bin": {
+    "ec2-postgresql-connect": ".bin/ec2-postgresql-connect.sh",
+    "pulumi-aws-login": "./bin/pulumi-aws-login.sh"
+  },
+  "scripts": {
     "build": "tsc",
     "test": "jest"
   },
@@ -24,7 +24,7 @@
     "typescript": "^5.5.3"
   },
   "license": "MIT",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
