@@ -63,7 +63,7 @@ async function handler(event) {
 
         return new aws.cloudfront.Function(this.name, {
             runtime: "cloudfront-js-2.0",
-            comment: `${handlerNames}`,
+            comment: `${this.eventType}: ${handlerNames}`,
             publish: true,
             code,
         }, {
