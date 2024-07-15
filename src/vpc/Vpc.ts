@@ -3,6 +3,7 @@ import * as awsNative from "@pulumi/aws-native";
 import * as pulumi from "@pulumi/pulumi";
 import { ComponentResource, ComponentResourceOptions, Output } from "@pulumi/pulumi";
 import { getRegion } from "../util/aws";
+import { computeSubnetIpv6Cidr } from "./cidr";
 
 /**
  * Design:
@@ -30,7 +31,7 @@ export class Vpc extends ComponentResource implements IVpc {
     private readonly eicSecurityGroup: aws.ec2.SecurityGroup;
     private readonly vpc: aws.ec2.Vpc;
 
-    constructor(name: string, args: NetworkArgs, opts?: ComponentResourceOptions) {
+    constructor(name: string, args: VpcArgs, opts?: ComponentResourceOptions) {
         super("pat:vpc:Vpc", name, args, opts);
         this.cidrIpv4 = "10.0.0.0/16";
         this.name = name;
@@ -44,7 +45,9 @@ export class Vpc extends ComponentResource implements IVpc {
             cidrBlock: this.cidrIpv4,
             enableDnsSupport: true,
             enableDnsHostnames: true,
-            assignGeneratedIpv6CidrBlock: true,
+            assignGeneratedIpv6CidrBlock: args.ipv6IpamPoolId ? undefined : true,
+            ipv6IpamPoolId: args.ipv6IpamPoolId,
+            ipv6NetmaskLength: args.ipv6IpamPoolId ? 56 : undefined,
             tags: {
                 Name: name
             }
@@ -89,7 +92,7 @@ export class Vpc extends ComponentResource implements IVpc {
         const name = `${this.name}-${az}-public`;
         const subnetIndex = az.charCodeAt(0) - 'a'.charCodeAt(0); // a->0, b->1 etc.
         const ipv4CidrBlock = this.computeSubnetIpv4Cidr(subnetIndex);
-        const ipv6CidrBlock = vpc.ipv6CidrBlock.apply(vpcCidr => vpcCidr.replace("00::/56", `0${subnetIndex}::/64`));
+        const ipv6CidrBlock = vpc.ipv6CidrBlock.apply(networkCidr => computeSubnetIpv6Cidr(networkCidr, subnetIndex));
 
         const subnet = new aws.ec2.Subnet(name, {
             vpcId: vpc.id,
@@ -137,7 +140,7 @@ export class Vpc extends ComponentResource implements IVpc {
         const name = `${this.name}-${az}-private`;
         const subnetIndex = (az.charCodeAt(0) - 'a'.charCodeAt(0)) + 3; // a->3, b->4 etc.
         const ipv4CidrBlock = this.computeSubnetIpv4Cidr(subnetIndex);
-        const ipv6CidrBlock = vpc.ipv6CidrBlock.apply(vpcCidr => vpcCidr.replace("00::/56", `0${subnetIndex}::/64`));
+        const ipv6CidrBlock = vpc.ipv6CidrBlock.apply(networkCidr => computeSubnetIpv6Cidr(networkCidr, subnetIndex));
 
         const subnet = new aws.ec2.Subnet(name, {
             vpcId: vpc.id,
@@ -247,13 +250,18 @@ export class Vpc extends ComponentResource implements IVpc {
     // }
 }
 
-export interface NetworkArgs {
+export interface VpcArgs {
     /**
      * How many bits the IPv4 address should have, e.g. 24 which would mean the public subnet for zone A would get CIDR 10.0.0.0/24.
      * Allowed range: 20 - 24
      * Default: 22
      */
     readonly ipv4MaskBits?: number;
+
+    /**
+     * If set, uses the given IPAM IPv6 pool. Otherwise a Amazon-provided IPv6 CIDR block is used.
+     */
+    readonly ipv6IpamPoolId?: pulumi.Input<string>;
 }
 
 /**
