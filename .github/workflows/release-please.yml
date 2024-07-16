@@ -1,13 +1,14 @@
+name: release-please
+
 on:
   push:
     branches:
       - main
 
 permissions:
-  contents: write
-  pull-requests: write
-
-name: release-please
+  contents: write # to create release commit (google-github-actions/release-please-action)
+  pull-requests: write # to create release PR (google-github-actions/release-please-action)
+  id-token: write
 
 jobs:
   release-please:
@@ -17,3 +18,15 @@ jobs:
         with:
           token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
           release-type: node
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+      - run: npm install npm@latest -g
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - if: ${{ steps.release.outputs.release_created }}
+        run: echo npm publish --provenance --access public
+        env:
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
