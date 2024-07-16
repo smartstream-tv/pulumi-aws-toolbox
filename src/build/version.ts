@@ -5,20 +5,23 @@ import { promisify } from "util";
 const exec = promisify(child_process.exec);
 
 /**
- * Computes a version for a given path in the repository using the git history.
+ * Computes a version ID for the given path in the repository using the git history.
  * Useful for building immutable build artifacts.
  * 
- * Determines the hash of the git commit when the given path was last changed and truncates it to eight characters.
+ * Determines the hash of the git commit when anything underneath the given paths were last changed and truncates the commit hash to eight characters.
  * Git CLI must be installed!
  * 
- * @param path relative to the current working dir
+ * @param paths the paths, relative to the current working dir
  */
-export async function getVersion(path: string): Promise<string> {
-    // check that the path exists
-    await fs.promises.access(path);
+export async function getVersion(...paths: string[]): Promise<string> {
+    for (const path of paths) {
+        // check that the path exists
+        await fs.promises.access(path);
+    }
 
-    const { stdout } = await exec(`git log -n 1 --pretty=format:%H -- '${path}'`);
-    if (stdout.trim().length == 0) throw new Error(`Path ${path} not found in history`);
+    const pathArgs = paths.map(p => `'${p}'`).join(' ');
+    const { stdout } = await exec(`git log -n 1 --pretty=format:%H -- ${pathArgs}`);
+    if (stdout.trim().length == 0) throw new Error(`Paths ${pathArgs} not found in history`);
 
     const version = stdout.substring(0, 8);
     return version;
