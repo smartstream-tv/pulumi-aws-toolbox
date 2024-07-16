@@ -3,6 +3,7 @@ import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 import { fromUtf8 } from "@aws-sdk/util-utf8-node";
 
 const assumeRoleArn = process.env.ASSUME_ROLE_ARN;
+const region = process.env.REGION;
 
 export const handler = async (event, context) => {
     console.log("EVENT", JSON.stringify(event, null, 2));
@@ -24,7 +25,10 @@ export const handler = async (event, context) => {
 
 async function createClient() {
     if (assumeRoleArn) {
-        const stsClient = new STSClient();
+        const stsClient = new STSClient({
+            region,
+        });
+        
         const assumeRoleResponse = await stsClient.send(new AssumeRoleCommand({
             RoleArn: assumeRoleArn,
             RoleSessionName: "mailer",
@@ -38,6 +42,8 @@ async function createClient() {
             },
         });
     } else {
-        return new SESv2Client();
+        return new SESv2Client({
+            region,
+        });
     }
 }
