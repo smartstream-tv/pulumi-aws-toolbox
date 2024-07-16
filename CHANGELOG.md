@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.1](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.0...v0.16.1) (2024-07-16)
+
+
+### Bug Fixes
+
+* getVersion supporting multiple paths ([a210e64](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/a210e64e315dfa06302a6a4988c6621c188cbc67))
+
 ## [0.16.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.15.1...v0.16.0) (2024-07-16)
 
 
