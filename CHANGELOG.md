@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.16.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.15.1...v0.16.0) (2024-07-16)
+
+
+### Features
+
+* added getVersion to build immutable artifacts ([dfe3d75](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/dfe3d75898273b28f1a83b22c52ae0fe0993812f))
+* mailer supporting different region, fixed missing IAM permission ([d96b98d](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/d96b98da0ff8342fdd899c6d46f1e2c26465bcc1))
+
 ## [0.15.1](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.15.0...v0.15.1) (2024-07-15)
 
 
