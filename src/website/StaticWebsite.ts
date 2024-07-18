@@ -129,7 +129,7 @@ export class StaticWebsite extends pulumi.ComponentResource {
 
         singleAssetBucket.setupAccessPolicy(this.distribution.arn);
 
-        createCloudfrontDnsRecords(name, this.distribution, zone.id, args.subDomain, this);
+        createCloudfrontDnsRecords(name, this.distribution, zone.id, args.subDomain, { parent: this });
     }
 }
 

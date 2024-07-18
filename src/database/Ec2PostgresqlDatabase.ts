@@ -1,5 +1,6 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
+import { createHostDnsRecords } from "../dns/dns";
 import { ConnectDetails } from "./ConnectDetails";
 
 /**
@@ -10,6 +11,8 @@ import { ConnectDetails } from "./ConnectDetails";
  *  - using custom server configuration/extensions is possible
  * 
  * Not suitable for production with high availability and durability requirements.
+ * 
+ * Changing data volume size is not supported and would lead to data loss!
  */
 export class Ec2PostgresqlDatabase extends pulumi.ComponentResource {
     private readonly args: Ec2PostgresqlDatabaseArgs;
@@ -30,6 +33,7 @@ export class Ec2PostgresqlDatabase extends pulumi.ComponentResource {
         }, {
             parent: this,
             protect: opts?.protect,
+            replaceOnChanges: ["*"], // forces replace on size change, which fails if protected
         });
 
         const ami = pulumi.output(aws.ec2.getAmi({
@@ -55,8 +59,8 @@ export class Ec2PostgresqlDatabase extends pulumi.ComponentResource {
             },
         }, {
             parent: this,
-            deleteBeforeReplace: true,
-            replaceOnChanges: ["*"], // forces replace on userData change
+            protect: false,
+            replaceOnChanges: ["*"], // forces replacement on userData change,
         });
 
         new aws.ec2.VolumeAttachment(`${name}-data`, {
@@ -66,14 +70,17 @@ export class Ec2PostgresqlDatabase extends pulumi.ComponentResource {
             stopInstanceBeforeDetaching: true,
         }, {
             parent: this,
+            protect: false,
             deleteBeforeReplace: true,
         });
+
+        createHostDnsRecords(name, args.domain, this.instance.privateIp, this.instance.ipv6Addresses[0], 30, { parent: this, protect: false });
     }
 
     getConnectDetails(): ConnectDetails {
         return {
             type: "postgresql",
-            host: this.instance.privateIp,
+            host: pulumi.output(this.args.domain),
             port: 5432,
             name: "postgres",
             username: "postgres",
@@ -107,7 +114,12 @@ export class Ec2PostgresqlDatabase extends pulumi.ComponentResource {
 }
 
 export interface Ec2PostgresqlDatabaseArgs {
+    /**
+     * Size of the data volume in GB.
+     */
     dataVolumeSize: pulumi.Input<number>;
+
+    domain: pulumi.Input<string>;
     instanceType: aws.types.enums.ec2.InstanceType,
     password: pulumi.Input<string>;
     securityGroupId: pulumi.Input<string>;

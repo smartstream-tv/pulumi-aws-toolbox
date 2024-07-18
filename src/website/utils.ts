@@ -1,8 +1,7 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
-import { ComponentResource } from "@pulumi/pulumi";
 
-export function createCloudfrontDnsRecords(name: string, distribution: aws.cloudfront.Distribution, zoneId: pulumi.Input<string>, subDomain?: pulumi.Input<string>, parent?: ComponentResource) {
+export function createCloudfrontDnsRecords(name: string, distribution: aws.cloudfront.Distribution, zoneId: pulumi.Input<string>, subDomain?: pulumi.Input<string>, opts?: pulumi.ComponentResourceOptions) {
     const cloudfrontZoneId = "Z2FDTNDATAQYW2";
 
     new aws.route53.Record(`${name}-a`, {
@@ -14,7 +13,7 @@ export function createCloudfrontDnsRecords(name: string, distribution: aws.cloud
             name: distribution.domainName,
             evaluateTargetHealth: false
         }]
-    }, { parent, deleteBeforeReplace: true });
+    }, { ...opts, deleteBeforeReplace: true });
 
     new aws.route53.Record(`${name}-aaaa`, {
         zoneId,
@@ -25,7 +24,7 @@ export function createCloudfrontDnsRecords(name: string, distribution: aws.cloud
             name: distribution.domainName,
             evaluateTargetHealth: false
         }]
-    }, { parent, deleteBeforeReplace: true });
+    }, { ...opts, deleteBeforeReplace: true });
 }
 
 /**
