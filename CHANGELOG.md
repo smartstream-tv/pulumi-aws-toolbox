@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.16.2](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.1...v0.16.2) (2024-07-20)
+
+
+### Bug Fixes
+
+* Ec2PostgresqlDatabase exposing a domain ([eb2be89](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/eb2be89cb87d3582087f1921abbd2a911a4935c4))
+* getSsmSecret returning a secure Output instead of Promise ([e222e6d](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/e222e6dfc4c0ab5fc87ae6e601212c1628cf4e9f))
+
 ## [0.16.1](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.0...v0.16.1) (2024-07-16)
 
 
