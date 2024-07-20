@@ -4,7 +4,7 @@
     "url": "https://github.com/smartstream-tv/pulumi-aws-toolbox"
   },
   "bin": {
-    "ec2-postgresql-connect": ".bin/ec2-postgresql-connect.sh",
+    "ec2-postgresql-connect": "./bin/ec2-postgresql-connect.sh",
     "pulumi-aws-login": "./bin/pulumi-aws-login.sh"
   },
   "scripts": {
