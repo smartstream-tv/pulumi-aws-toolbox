@@ -1,9 +1,10 @@
 import * as aws from "@pulumi/aws";
+import * as pulumi from "@pulumi/pulumi";
 
-export async function getSsmSecret(name: string): Promise<string> {
-    const result = await aws.ssm.getParameter({
+export function getSsmSecret(name: string): pulumi.Output<string> {
+    const result = pulumi.secret(aws.ssm.getParameter({
         name,
         withDecryption: true
-    });
-    return result.value;
+    }));
+    return result.apply(x => x.value);
 }
