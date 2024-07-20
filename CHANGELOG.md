@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.3](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.2...v0.16.3) (2024-07-20)
+
+
+### Bug Fixes
+
+* ec2-postgresql-connect installing correctly ([05d53d9](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/05d53d9042394d33f142899ed98f78d6c6b837b8))
+
 ## [0.16.2](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.1...v0.16.2) (2024-07-20)
 
 
