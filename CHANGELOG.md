@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.4](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.3...v0.16.4) (2024-07-25)
+
+
+### Bug Fixes
+
+* CloudfrontLogBucket dependency on ACL ([191c039](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/191c039cae2e6ba4fc3bfe5013fdf10fb23b05ee))
+
 ## [0.16.3](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.2...v0.16.3) (2024-07-20)
 
 
