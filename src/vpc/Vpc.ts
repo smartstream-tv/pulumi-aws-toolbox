@@ -13,11 +13,12 @@ import { computeSubnetIpv6Cidr } from "./cidr";
  * Resources in a public subnet:
  *  - can be reached from the internet (via IPv4 and IPv6)
  *  - can communicate to the internet (via IPv4 and IPv6)
- *  - for IPv4, resources need to have a public IPv4 address (not possible with AWS Lambda)
+ *  - for IPv4, resources need to have a public IPv4 address (not supported by AWS Lambda)
  * 
  * Resources in a private subnet:
  *  - cannot be reached from the internet
  *  - can communicate to the internet only via IPv6
+ *  - applications in a private subnet may have to be configured to prefer IPv6 addresses over IPv4
  */
 export class Vpc extends ComponentResource implements IVpc {
     readonly cidrIpv4: string;

@@ -21,6 +21,7 @@ export class S3ArtifactStore extends ComponentResource {
         this.name = name;
         this.readAccessRequests = [];
 
+        // TODO migrate to BucketV2
         this.bucket = new aws.s3.Bucket(name, {
             bucket: `${name}-${getAccountId()}`,
             versioning: {
@@ -76,6 +77,7 @@ export class S3ArtifactStore extends ComponentResource {
     createBucketPolicy() {
         new aws.s3.BucketPolicy(this.name, {
             bucket: this.bucket.id,
+            // TODO migrate to PolicyDocument.Statement notation (see vb backend-service.ts)
             policy: aws.iam.getPolicyDocumentOutput({
                 statements: this.readAccessRequests.map(request => ({
                     sid: `CloudFront-Read-${request.path}`,

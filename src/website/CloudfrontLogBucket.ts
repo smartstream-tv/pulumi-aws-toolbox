@@ -6,7 +6,7 @@ import { ComponentResource, ComponentResourceOptions } from "@pulumi/pulumi";
  * Creates a S3 bucket that can be used to store CloudFront standard logs.
  */
 export class CloudfrontLogBucket extends ComponentResource {
-    readonly bucketRegionalDomainName: pulumi.Input<string>;
+    readonly bucketRegionalDomainName: pulumi.Output<string>;
 
     constructor(name: string, args: CloudfrontLogBucketArgs, opts?: ComponentResourceOptions) {
         super("pat:website:CloudfrontLogBucket", name, args, opts);
@@ -36,7 +36,7 @@ export class CloudfrontLogBucket extends ComponentResource {
         const currentUser = aws.s3.getCanonicalUserId({}).then(currentUser => currentUser.id);
         const awslogsdeliveryUserId = "c4c1ede66af53448b93c283ce9448c4ba468c9432aa01d700d3878632f77d2d0";
 
-        new aws.s3.BucketAclV2(name, {
+        const acl = new aws.s3.BucketAclV2(name, {
             bucket: bucket.id,
             accessControlPolicy: {
                 grants: [
@@ -64,7 +64,8 @@ export class CloudfrontLogBucket extends ComponentResource {
             dependsOn: [encryption, publicAccess, ownershipControls]
         });
 
-        this.bucketRegionalDomainName = bucket.bucketRegionalDomainName;
+        // make bucketRegionalDomainName depend on the ACL - otherwise a CloudFront dist may fail to create with "bucket ... does not enable ACL access" error
+        this.bucketRegionalDomainName = pulumi.output(pulumi.all([bucket, acl]).apply(x => x[0].bucketRegionalDomainName));
     }
 }
 

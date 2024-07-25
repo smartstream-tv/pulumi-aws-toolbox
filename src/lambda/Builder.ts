@@ -61,7 +61,7 @@ export class Builder {
         return role;
     }
 
-    createVpcConfig() {
+    createVpcConfig(): aws.types.input.lambda.FunctionVpcConfig | undefined {
         if (this.args.vpc != undefined) {
             const sg = new StdSecurityGroup(this.name, {
                 vpc: this.args.vpc,
