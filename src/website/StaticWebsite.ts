@@ -120,6 +120,7 @@ export class StaticWebsite extends pulumi.ComponentResource {
                 bucket: logBucket.bucketRegionalDomainName,
                 includeCookies: false
             },
+            waitForDeployment: false,
         }, {
             parent: this,
             deleteBeforeReplace: true
