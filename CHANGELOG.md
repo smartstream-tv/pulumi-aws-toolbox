@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.16.5](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.4...v0.16.5) (2024-07-30)
+
+
+### Bug Fixes
+
+* added 20s delay to CloudfrontLogBucket to work around around 'bucket does not enable ACL access' errors ([4c2e988](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/4c2e9880f4ca91c010bbc3d1bcb6e48af906dc71))
+* StaticWebsite no longer waiting for full deployment, use delayedOutput instead ([b086678](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/b0866782c3ac4d0ebd00f875af761450bb14c71c))
+* StaticWebsite supporting http3 ([5029e57](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/5029e57aa78bf0166bf00c8b2f3e0a4f3ff07e3d))
+
 ## [0.16.4](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.3...v0.16.4) (2024-07-25)
 
 
