@@ -81,6 +81,7 @@ export class StaticWebsite extends pulumi.ComponentResource {
             originGroups: [],
             enabled: true,
             isIpv6Enabled: true,
+            httpVersion: "http2and3",
             comment: `${name}`,
             aliases: [this.domain],
             defaultRootObject: "index.html",
