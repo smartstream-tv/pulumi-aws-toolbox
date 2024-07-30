@@ -1,2 +1,2 @@
-//export * from "./aws";
+export * from "./pulumi";
 export * from "./ssm";
