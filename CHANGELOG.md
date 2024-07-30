@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.6](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.5...v0.16.6) (2024-07-30)
+
+
+### Bug Fixes
+
+* delayedOutput skipping delay during preview phase ([90c35d3](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/90c35d38b20404c1e716558e734f3b4e904ab510))
+
 ## [0.16.5](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.4...v0.16.5) (2024-07-30)
 
 

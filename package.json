@@ -24,7 +24,7 @@
     "typescript": "^5.5.3"
   },
   "license": "MIT",
-  "version": "0.16.5",
+  "version": "0.16.6",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
