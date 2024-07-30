@@ -66,7 +66,7 @@ export class CloudfrontLogBucket extends ComponentResource {
         });
 
         // make bucketRegionalDomainName depend on the ACL and wait a bit - otherwise a CloudFront dist may fail to create with "bucket ... does not enable ACL access" error
-        this.bucketRegionalDomainName = pulumi.all([bucket, acl]).apply(x => delayedOutput(x[0].bucketRegionalDomainName, 20000));
+        this.bucketRegionalDomainName = pulumi.all([bucket, acl]).apply(x => delayedOutput(x[0].bucketRegionalDomainName, 10000));
     }
 }
 

@@ -10,11 +10,21 @@ export async function resolveOutput<T>(input: pulumi.Output<T>) {
     });
 }
 
+/**
+ * Delays further processing of an output by a given number of milliseconds.
+ * Useful to force a short wait when resources are only eventually consistent.
+ * 
+ * The delay is skipped during preview phase.
+ */
 export function delayedOutput<T>(input: pulumi.Output<T>, millis: number): pulumi.Output<T> {
-    return input.apply(async (x) => {
-        await delay(millis);
-        return x;
-    });
+    if (!pulumi.runtime.isDryRun()) {
+        return input.apply(async (x) => {
+            await delay(millis);
+            return x;
+        });
+    } else {
+        return input;
+    }
 }
 
 export async function delay(millis: number) {
