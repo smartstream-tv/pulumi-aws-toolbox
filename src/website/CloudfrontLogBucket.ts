@@ -5,6 +5,7 @@ import { delayedOutput } from "../util";
 
 /**
  * Creates a S3 bucket that can be used to store CloudFront standard logs.
+ * On deletion the bucket's content will be deleted too, so configure as protected if necessary.
  */
 export class CloudfrontLogBucket extends ComponentResource {
     readonly bucketRegionalDomainName: pulumi.Output<string>;
@@ -12,7 +13,12 @@ export class CloudfrontLogBucket extends ComponentResource {
     constructor(name: string, args: CloudfrontLogBucketArgs, opts?: ComponentResourceOptions) {
         super("pat:website:CloudfrontLogBucket", name, args, opts);
 
-        const bucket = new aws.s3.BucketV2(name, {}, { parent: this });
+        const bucket = new aws.s3.BucketV2(name, {
+            forceDestroy: true,
+        }, {
+            parent: this,
+            protect: opts?.protect,
+        });
 
         const encryption = new aws.s3.BucketServerSideEncryptionConfigurationV2(name, {
             bucket: bucket.bucket,
