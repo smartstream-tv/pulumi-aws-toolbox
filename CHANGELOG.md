@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.7](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.6...v0.16.7) (2024-07-31)
+
+
+### Bug Fixes
+
+* CloudfrontLogBucket fails to delete due to content ([8144f22](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/8144f2242d5f8da95e1c99847ae57a77ccd97934))
+
 ## [0.16.6](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.5...v0.16.6) (2024-07-30)
 
 
