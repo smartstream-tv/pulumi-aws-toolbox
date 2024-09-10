@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.17.0...v0.17.1) (2024-09-10)
+
+
+### Bug Fixes
+
+* added workaround for CloudFront/Lambda integration (useOriginAccessControl) ([76a16bf](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/76a16bf7fc04250a5db8e3c97ed0bb26587ea756))
+
 ## [0.17.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.7...v0.17.0) (2024-09-10)
 
 
