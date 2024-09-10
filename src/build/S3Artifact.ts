@@ -1,5 +1,6 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
+import { S3Location } from "../website/S3Location";
 
 /**
  * References a build artifact stored in S3. The S3Artifact references an entire directory in S3, not a single file.
@@ -11,11 +12,11 @@ import * as pulumi from "@pulumi/pulumi";
  * - a name e.g. "frontend"
  * - a version e.g. a Git commit hash
  */
-export class S3Artifact {
+export class S3Artifact implements S3Location {
     /**
      * The bucket.
      */
-    readonly bucket: aws.s3.Bucket;
+    readonly bucket: aws.s3.BucketV2;
 
     /**
      * The name of the artifact.
@@ -23,31 +24,28 @@ export class S3Artifact {
     readonly name: string;
 
     /**
-        The version of the artifact.
-      */
+     * The version of the artifact.
+     */
     readonly version: string;
 
     private requestAccess: RequestReadAccessFunction;
 
-    constructor(bucket: aws.s3.Bucket, name: string, version: string, requestCloudfrontReadAccess: RequestReadAccessFunction) {
+    constructor(bucket: aws.s3.BucketV2, name: string, version: string, requestCloudfrontReadAccess: RequestReadAccessFunction) {
         this.bucket = bucket;
         this.name = name;
         this.version = version;
         this.requestAccess = requestCloudfrontReadAccess;
     }
 
-    /**
-     * Returns the path inside the bucket where the artifact is located.
-     * Start without a slash, and ends without a slash.
-     * Example: "frontend/abcd1234"
-     */
+    getBucket() {
+        return this.bucket;
+    }
+
     getPath() {
-        return `${this.name}/${this.version}`;
+        return pulumi.interpolate`${this.name}/${this.version}`;
     };
 
-    /**
-     * The component using this artifact (e.g. AWS Lambda / CloudFront) needs read access to the artifact, which they can request by calling this method.
-     */
+
     requestCloudfrontReadAccess(arn: pulumi.Input<aws.ARN>) {
         return this.requestAccess(arn);
     }
@@ -61,7 +59,7 @@ export type RequestReadAccessFunction = (arn: pulumi.Input<aws.ARN>) => void;
  * The bucket must already allow proper read access.
  */
 export function getS3ArtifactForBucket(
-    bucket: aws.s3.Bucket,
+    bucket: aws.s3.BucketV2,
     artifactName: string,
     version: string
 ): S3Artifact {
