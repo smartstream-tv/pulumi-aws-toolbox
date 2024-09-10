@@ -8,7 +8,6 @@ import { ComponentResource, ComponentResourceOptions } from "@pulumi/pulumi";
  */
 export class SingleAssetBucket extends ComponentResource {
     readonly assets: SingleAsset[];
-    readonly originId: string;
     private bucket: aws.s3.BucketV2;
     private name: string;
     private publicAccess: aws.s3.BucketPublicAccessBlock;
@@ -16,7 +15,6 @@ export class SingleAssetBucket extends ComponentResource {
     constructor(name: string, args: SingleAssetBucketArgs, opts?: ComponentResourceOptions) {
         super("pat:website:SingleAssetBucket", name, args, opts);
         this.name = name;
-        this.originId = name;
         this.assets = args.assets;
 
         this.bucket = new aws.s3.BucketV2(name, {}, { parent: this });
@@ -37,6 +35,10 @@ export class SingleAssetBucket extends ComponentResource {
         }, { parent: this });
 
         for (const asset of args.assets) {
+            if (asset.path.includes("*") || asset.path.includes("?")) {
+                throw new Error(`Wildcard '${asset.path}' is not allowed`);
+            }
+
             new aws.s3.BucketObject(`${name}-${asset.path}`, {
                 bucket: this.bucket.bucket,
                 key: asset.path,
@@ -46,12 +48,8 @@ export class SingleAssetBucket extends ComponentResource {
         }
     }
 
-    getOriginConfig(oac: aws.cloudfront.OriginAccessControl): aws.types.input.cloudfront.DistributionOrigin {
-        return {
-            originId: this.originId,
-            domainName: this.bucket.bucketRegionalDomainName,
-            originAccessControlId: oac.id,
-        };
+    getBucket(): aws.s3.BucketV2 {
+        return this.bucket;
     }
 
     /**

@@ -26,25 +26,3 @@ export function createCloudfrontDnsRecords(name: string, distribution: aws.cloud
         }]
     }, { ...opts, deleteBeforeReplace: true });
 }
-
-/**
- * Simple cache behavior for S3 that caches responses for up to one minute.
- */
-export function stdCacheBehavior() {
-    return {
-        allowedMethods: ["HEAD", "GET"],
-        cachedMethods: ["HEAD", "GET"],
-        viewerProtocolPolicy: "redirect-to-https",
-        minTtl: 60,
-        defaultTtl: 60,
-        maxTtl: 60,
-        forwardedValues: {
-            cookies: {
-                forward: "none",
-            },
-            headers: [],
-            queryString: false,
-        },
-        compress: true,
-    };
-}

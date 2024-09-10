@@ -47,17 +47,18 @@ Components:
 #### Static website
 The [StaticWebsite](src/website/StaticWebsite.ts) component creates a CloudFront distribution and a number of supporting resources to create a mostly static website. It's an opinionated component that tries to solve the common cases of website hosting - but it may not be suitable for all cases.
 
-The following things happen under the hood:
-- By default assets are loaded from S3.
-- HTTPS handled by CloudFront, using a free HTTPS certificate from AWS.
-- DNS records are created in Route53.
+Resources can be integrated from these source (see "routes" argument) e.g.
+ - S3: for static assets
+ - Lambda: to integrate dynamic content using a Lambda function
+ - SingleAsset: a useful utility to define a static environment specific configuration file e.g. at /config.json
+
+Moreover, the following things happen under the hood:
 - Automatically handles URL rewrites, so that when the user loads example.com/product, it will internally load product/index.html from S3.
-- Efficient caching. The cache-control response header is set automatically to force the browser to re-validate resources before it can use them. If you have assets that never change, configure them with "immutablePaths".
+- HTTPS handled by CloudFront using a free HTTPS certificate from AWS.
+- DNS records are created in Route53.
+- Efficient caching for S3. The cache-control response header is set automatically to force the browser to re-validate resources before it can use them. If you have assets that never change, configure them by setting "immutable" for a given S3 route.
 - HTTP basic auth can be enabled to protect the website, e.g. for dev.
 - Access logs are stored in S3.
-- Additonal resources can be integrated (see "integrations" argument) e.g.
-  - a backend can be integrate underneath /api
-  - environment specific configuration could be added at /config.json
 - Automatically sets common HTTP security headers for responses.
 
 Primarily, assets are loaded from S3 (specified by an S3Artifact). The bucket must be provided by you, for example, using the S3ArtifactStore component. The bucket must be provided by you, to care for cases where
@@ -73,8 +74,12 @@ const artifactStore = new pat.build.S3ArtifactStore(`my-artifact`, {
 
 new pat.website.StaticWebsite(`my-website`, {
     acmCertificateArn_usEast1: "arn:aws:acm:us-east-1:111111111111:certificate/xxxxxxxxx",
-    assets: artifactStore.getArtifactVersion("1.0"),
-    hostedZoneId: "Z11111111111111111111"
+    hostedZoneId: "Z11111111111111111111",
+    routes: [{
+        type: RouteType.S3,
+        pathPattern: "/",
+        s3Location: artifactStore.getArtifactVersion("1.0"),
+    }],
 });
 
 artifactStore.createBucketPolicy();
