@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.7...v0.17.0) (2024-09-10)
+
+
+### Features
+
+* StaticWebsite supports integrating Lambda functions. changed API of StaticWebsite ([81ec91a](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/81ec91a4c8aef190f83aceaf8d0369a8bb5ea7e2))
+
 ## [0.16.7](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.16.6...v0.16.7) (2024-07-31)
 
 
