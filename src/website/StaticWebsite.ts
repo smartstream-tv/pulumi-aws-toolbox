@@ -80,7 +80,7 @@ export class StaticWebsite extends pulumi.ComponentResource {
                     return {
                         originId: `route-${route.pathPattern}`,
                         domainName: route.functionUrl.functionUrl.apply(url => new URL(url).host),
-                        originAccessControlId: lambdaOriginAccessControl.id,
+                        originAccessControlId: (route.useOriginAccessControl ?? true) ? lambdaOriginAccessControl.id : undefined,
                         customOriginConfig: {
                             httpPort: 80,
                             httpsPort: 443,
@@ -248,6 +248,16 @@ export type LambdaRoute = {
      * The function URL resource to integrate.
      */
     readonly functionUrl: aws.lambda.FunctionUrl;
+
+    /**
+     * If the OAC should be used to sign requests to the Lambda origin.
+     * Default is true.
+     * 
+     * Can be set to disabled on first creation, to workaround an issue with CloudFront, see
+     * "Before you create an OAC or set it up in a CloudFront distribution, make sure the OAC has permission to access the Lambda function URL."
+     * https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-lambda.html#create-oac-overview-lambda
+     */
+    readonly useOriginAccessControl?: boolean;
 }
 
 /**
