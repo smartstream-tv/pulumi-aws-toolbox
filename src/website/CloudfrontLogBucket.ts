@@ -4,8 +4,8 @@ import { ComponentResource, ComponentResourceOptions } from "@pulumi/pulumi";
 import { delayedOutput } from "../util";
 
 /**
- * Creates a S3 bucket that can be used to store CloudFront standard logs.
- * On deletion the bucket's content will be deleted too, so configure as protected if necessary.
+ * Creates a S3 bucket to store CloudFront standard logs.
+ * On deletion the bucket's content will be deleted too, so configure it as 'protected' if necessary.
  */
 export class CloudfrontLogBucket extends ComponentResource {
     readonly bucketRegionalDomainName: pulumi.Output<string>;

@@ -34,6 +34,10 @@ Components:
 * [StdSecurityGroup](src/vpc/StdSecurityGroup.ts): A simple security group for many standard cases.
 * [Vpc](src/vpc/Vpc.ts): the VPC component itself.
 
+### Database
+Components:
+* [Ec2PostgresqlDatabase](src/database/Ec2PostgresqlDatabase.ts): Creates a self-hosted postgresql database on EC2.
+
 ### Lambda
 Components:
 * [SimpleNodeLambda](src/lambda/SimpleNodeLambda.ts): Creates a Nodejs AWS Lambda with useful defaults for small & simple tasks.
@@ -43,6 +47,11 @@ Components:
 * [SesProxyMailer](src/ses/SesProxyMailer.ts): Creates a AWS Lambda to send email using SES using IPv6 and/or from another account.
 
 ### Website
+Components:
+* [CloudfrontLogBucket](src/website/CloudfrontLogBucket.ts): Creates a S3 bucket to store CloudFront standard logs.
+* [SingleAssetBucket](src/website/SingleAssetBucket.ts): Creates a S3 bucket where single file assets can be stored for delivery by a CloudFront distribution.
+* [StaticWebsite](src/website/StaticWebsite.ts): Opinionated component for hosting a website. See below for a detailed description.
+* [ViewerRequestFunction/ViewerResponseFunction](src/website/cloudfront-function.ts): Creates a CloudFront function that processes the request/response through a chain of handlers.
 
 #### Static website
 The [StaticWebsite](src/website/StaticWebsite.ts) component creates a CloudFront distribution and a number of supporting resources to create a mostly static website. It's an opinionated component that tries to solve the common cases of website hosting - but it may not be suitable for all cases.
@@ -84,7 +93,7 @@ new pat.website.StaticWebsite(`my-website`, {
 
 artifactStore.createBucketPolicy();
 ```
-Afterwards, upload your website assets into s3://my-artifact-ACCOUNT-ID/website/1.0 and you're done.
+Afterwards, upload your website assets into s3://my-artifact-xyz/website/1.0 and you're done.
 
 ### Build
 Components:

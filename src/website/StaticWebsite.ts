@@ -7,7 +7,8 @@ import { ViewerRequestFunction, ViewerResponseFunction } from "./cloudfront-func
 import { createCloudfrontDnsRecords } from "./utils";
 
 /**
- * Creates a CloudFront distribution and a number of supporting resources to create a mostly static website.
+ * Opinionated component for hosting a website.
+ * Creates a CloudFront distribution and a number of supporting resources.
  * See the README.md for the full documentation.
  */
 export class StaticWebsite extends pulumi.ComponentResource {

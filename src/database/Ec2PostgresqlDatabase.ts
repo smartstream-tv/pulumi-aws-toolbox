@@ -8,7 +8,7 @@ import { ConnectDetails } from "./ConnectDetails";
  * 
  * Features:
  *  - we can use very cheap instances, like t4g.nano
- *  - using custom server configuration/extensions is possible
+ *  - using custom server configuration/extension is possible
  * 
  * Not suitable for production with high availability and durability requirements.
  * 
