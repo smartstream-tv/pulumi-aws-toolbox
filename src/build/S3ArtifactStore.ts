@@ -42,7 +42,7 @@ export class S3ArtifactStore extends ComponentResource {
             versioningConfiguration: {
                 status: "Enabled",
             },
-        });
+        }, { parent: this });
 
         new aws.s3.BucketLifecycleConfigurationV2(name, {
             bucket: this.bucket.bucket,
@@ -53,7 +53,7 @@ export class S3ArtifactStore extends ComponentResource {
                     noncurrentDays: 90,
                 }
             }]
-        });
+        }, { parent: this });
 
         this.publicAccess = new aws.s3.BucketPublicAccessBlock(name, {
             bucket: this.bucket.id,
