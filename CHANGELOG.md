@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.2](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.17.1...v0.17.2) (2024-09-12)
+
+
+### Bug Fixes
+
+* S3ArtifactStore using BucketV2 correctly ([a1ef3de](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/a1ef3de9bd0deb75bd5a7b5468891e6e4244d39a))
+
 ## [0.17.1](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.17.0...v0.17.1) (2024-09-10)
 
 
