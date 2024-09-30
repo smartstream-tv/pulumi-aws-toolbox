@@ -7,9 +7,16 @@ It's mostly useful for projects that follow these design ideas:
 * websites that are mostly static using S3 and CloudFront
 * backends implemented with AWS Lambda
 
+## Setup
 Install with
 
     npm i @smartstream-tv/pulumi-aws-toolbox
+
+Import it into your code with
+
+```typescript
+import * as pat from "@smartstream-tv/pulumi-aws-toolbox";
+```
 
 ## Components
 
@@ -56,10 +63,10 @@ Components:
 #### Static website
 The [StaticWebsite](src/website/StaticWebsite.ts) component creates a CloudFront distribution and a number of supporting resources to create a mostly static website. It's an opinionated component that tries to solve the common cases of website hosting - but it may not be suitable for all cases.
 
-Resources can be integrated from these source (see "routes" argument) e.g.
+Resources can be integrated from these sources (see "routes" argument):
  - S3: for static assets
  - Lambda: to integrate dynamic content using a Lambda function
- - SingleAsset: a useful utility to define a static environment specific configuration file e.g. at /config.json
+ - SingleAsset: a useful utility to serve a single static file e.g. a environment specific config at /config.json
 
 Moreover, the following things happen under the hood:
 - Automatically handles URL rewrites, so that when the user loads example.com/product, it will internally load product/index.html from S3.
@@ -70,17 +77,17 @@ Moreover, the following things happen under the hood:
 - Access logs are stored in S3.
 - Automatically sets common HTTP security headers for responses.
 
-Primarily, assets are loaded from S3 (specified by an S3Artifact). The bucket must be provided by you, for example, using the S3ArtifactStore component. The bucket must be provided by you, to care for cases where
-the bucket should be shared by several dev stacks and must therefore already exist during the CI build phase or additional settings/permissions should be configured for the bucket (like cross-account access from prod).
+Primarily, assets are loaded from S3 (specified by an S3Location). The bucket must be provided by you, for example, using the S3ArtifactStore component. The bucket must be provided by you to cater for cases where
+the bucket should be shared by several dev stacks and must therefore already exist during the CI build phase (and to support additional settings e.g. cross-account access from prod).
 
 Example:
 ```typescript
-import * as pat from "@smartstream-tv/pulumi-aws-toolbox";
-
+// Create a S3 bucket where the website assets are stored
 const artifactStore = new pat.build.S3ArtifactStore(`my-artifact`, {
     artifactName: "website",
 });
 
+// Create the CloudFront distribution
 new pat.website.StaticWebsite(`my-website`, {
     acmCertificateArn_usEast1: "arn:aws:acm:us-east-1:111111111111:certificate/xxxxxxxxx",
     hostedZoneId: "Z11111111111111111111",
@@ -91,6 +98,7 @@ new pat.website.StaticWebsite(`my-website`, {
     }],
 });
 
+// Allow CloudFront to read the assets from S3
 artifactStore.createBucketPolicy();
 ```
 Afterwards, upload your website assets into s3://my-artifact-xyz/website/1.0 and you're done.
