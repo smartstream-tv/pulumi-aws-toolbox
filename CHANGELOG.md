@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.17.3...v1.0.0) (2024-09-30)
+
+
+### Miscellaneous Chores
+
+* release 1.0.0 ([fef0c39](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/fef0c39a7dc06c87df585a8979484c025f27ff38))
+
 ## [0.17.3](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.17.2...v0.17.3) (2024-09-30)
 
 
