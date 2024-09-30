@@ -1,6 +1,6 @@
 # Pulumi AWS Toolbox
 
-The Pulumi AWS Toolbox is an opinionated library containing components to build the infrastructure for website projects.
+The Pulumi AWS Toolbox is an opinionated library containing components to deploy common application to the AWS cloud.
 
 It's mostly useful for projects that follow these design ideas:
 * being as serverless as possible, with pay per request AWS resources while avoiding resources that incur a fixed cost per hour
@@ -29,9 +29,9 @@ Architecture:
 
 It sets up subnets for three availability zones (= data centers). This allows to build applications with very high availability.
 
-Resources in a public subnet can be reached and can communicate to the internet via IPv4 and IPv6.
- * For IPv4, resources need to have a public IPv4 address.
- * AWS Lambda does not support public IPv4 address, you would need NAT gateways for this, which we don't want to use do their cost.
+Resources in a public subnet can be reached from and can communicate to the internet via IPv4 and IPv6.
+ * For IPv4 resources need to have a public IPv4 address.
+ * AWS Lambda does not support public IPv4 addresses, you would need NAT gateways for this, which we don't want to use due to their cost.
 
 Resources in a private subnet can communicate to the internet only via IPv6 and cannot be reached from the internet at all.
 * By default, you should place resources that don't need to be reached from the internet here. 
