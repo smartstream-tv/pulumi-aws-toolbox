@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.3](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.17.2...v0.17.3) (2024-09-30)
+
+
+### Bug Fixes
+
+* calling pat.init is no longer needed ([c08ce7a](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/c08ce7a5bfb52e7363e36228db19766d57b6c5a6))
+
 ## [0.17.2](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.17.1...v0.17.2) (2024-09-12)
 
 
