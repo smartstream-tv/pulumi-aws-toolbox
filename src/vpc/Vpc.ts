@@ -2,7 +2,6 @@ import * as aws from "@pulumi/aws";
 import * as awsNative from "@pulumi/aws-native";
 import * as pulumi from "@pulumi/pulumi";
 import { ComponentResource, ComponentResourceOptions, Output } from "@pulumi/pulumi";
-import { getRegion } from "../util/aws";
 import { computeSubnetIpv6Cidr } from "./cidr";
 
 /**
@@ -105,7 +104,7 @@ export class Vpc extends ComponentResource implements IVpc {
 
         const subnet = new aws.ec2.Subnet(name, {
             vpcId: vpc.id,
-            availabilityZone: `${getRegion()}${az}`,
+            availabilityZone: pulumi.interpolate`${aws.getRegionOutput().name}${az}`,
             cidrBlock: ipv4CidrBlock,
             ipv6CidrBlock: ipv6CidrBlock,
             mapPublicIpOnLaunch: false,
@@ -151,7 +150,7 @@ export class Vpc extends ComponentResource implements IVpc {
 
         const subnet = new aws.ec2.Subnet(name, {
             vpcId: vpc.id,
-            availabilityZone: `${getRegion()}${az}`,
+            availabilityZone: pulumi.interpolate`${aws.getRegionOutput().name}${az}`,
             cidrBlock: ipv4CidrBlock,
             ipv6CidrBlock: ipv6CidrBlock,
             mapPublicIpOnLaunch: false,

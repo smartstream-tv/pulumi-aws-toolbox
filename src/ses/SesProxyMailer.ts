@@ -1,7 +1,7 @@
+import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import { ComponentResourceOptions } from "@pulumi/pulumi";
 import { RoleInlinePolicy, SimpleNodeLambda } from "../lambda";
-import { getRegion } from "../util/aws";
 
 /**
  * Creates a AWS Lambda to send email using SES.
@@ -42,7 +42,7 @@ export class SesProxyMailer extends SimpleNodeLambda {
             ],
             environmentVariables: {
                 ...(args.assumeRoleArn ? {ASSUME_ROLE_ARN: args.assumeRoleArn} : {}),
-                REGION: args.region ?? getRegion(),
+                REGION: args.region ?? aws.getRegionOutput().name,
             },
         }, opts, "pat:ses:SesProxyMailer");
     }
