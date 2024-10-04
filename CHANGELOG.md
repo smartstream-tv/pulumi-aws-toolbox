@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v1.0.0...v1.1.0) (2024-10-04)
+
+
+### Features
+
+* StaticWebsite supporting Custom RouteType to serve content from classic server apps. added aliases for easier migration of existing websites ([e8f69a7](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/e8f69a7e4f6ee30a17ef9fbe4b8d5448d2fb437a))
+
 ## [1.0.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v0.17.3...v1.0.0) (2024-09-30)
 
 
