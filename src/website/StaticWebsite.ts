@@ -74,9 +74,62 @@ export class StaticWebsite extends pulumi.ComponentResource {
             }))
         }, { parent: this });
 
+        const policyCachingDisabled = aws.cloudfront.getCachePolicyOutput({ name: "Managed-CachingDisabled" }).apply(policy => policy.id!!);
+
+        function getCacheBehavior(route: Route): aws.types.input.cloudfront.DistributionDefaultCacheBehavior {
+            if (route.type == RouteType.Custom) {
+                return {
+                    targetOriginId: `route-${route.pathPattern}`,
+                    allowedMethods: ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"],
+                    cachedMethods: ["HEAD", "GET"],
+                    cachePolicyId: route.cachePolicyId ?? policyCachingDisabled,
+                    compress: true,
+                    viewerProtocolPolicy: "redirect-to-https",
+                    originRequestPolicyId: aws.cloudfront.getOriginRequestPolicyOutput({ name: 'Managed-AllViewer' }).apply(policy => policy.id!!),
+                    functionAssociations: [apiViewerRequest, stdViewerResponse],
+                };
+            } else if (route.type == RouteType.Lambda) {
+                return {
+                    targetOriginId: `route-${route.pathPattern}`,
+                    allowedMethods: ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"],
+                    cachedMethods: ["HEAD", "GET"],
+                    cachePolicyId: policyCachingDisabled,
+                    compress: true,
+                    viewerProtocolPolicy: "redirect-to-https",
+                    originRequestPolicyId: aws.cloudfront.getOriginRequestPolicyOutput({ name: 'Managed-AllViewerExceptHostHeader' }).apply(policy => policy.id!!),
+                    functionAssociations: [apiViewerRequest, stdViewerResponse],
+                };
+            } else if (route.type == RouteType.S3) {
+                return {
+                    ...s3CacheBehavior(),
+                    targetOriginId: `route-${route.pathPattern}`,
+                    functionAssociations: [s3ViewerRequest, route.immutable ? immutableViewerResponse : stdViewerResponse],
+                };
+            } else if (route.type == RouteType.SingleAsset) {
+                return {
+                    ...s3CacheBehavior(),
+                    targetOriginId: `route-${route.pathPattern}`,
+                    functionAssociations: [s3ViewerRequest, stdViewerResponse],
+                };
+            } else {
+                throw new Error(`Unsupported route type ${route}`);
+            }
+        }
+
         this.distribution = new aws.cloudfront.Distribution(name, {
             origins: args.routes.map((route => {
-                if (route.type == RouteType.Lambda) {
+                if (route.type == RouteType.Custom) {
+                    return {
+                        originId: `route-${route.pathPattern}`,
+                        domainName: route.originDomainName,
+                        customOriginConfig: {
+                            httpPort: 80,
+                            httpsPort: 443,
+                            originProtocolPolicy: "https-only",
+                            originSslProtocols: ["TLSv1.2"]
+                        },
+                    };
+                } else if (route.type == RouteType.Lambda) {
                     return {
                         originId: `route-${route.pathPattern}`,
                         domainName: route.functionUrl.functionUrl.apply(url => new URL(url).host),
@@ -93,7 +146,7 @@ export class StaticWebsite extends pulumi.ComponentResource {
                         originId: `route-${route.pathPattern}`,
                         domainName: route.s3Location.getBucket().bucketRegionalDomainName,
                         originAccessControlId: s3OriginAccessControl.id,
-                        originPath: pulumi.interpolate`/${route.s3Location.getPath()}`,
+                        originPath: route.s3Location.getPath().apply(path => path !== '' ? `/${path}` : undefined),
                     };
                 } else if (route.type == RouteType.SingleAsset) {
                     return {
@@ -110,43 +163,11 @@ export class StaticWebsite extends pulumi.ComponentResource {
             httpVersion: "http2and3",
             comment: `${name}`,
             aliases: [this.domain],
-            defaultRootObject: "index.html",
-            orderedCacheBehaviors: args.routes.slice(0, -1).map((route => {
-                if (route.type == RouteType.Lambda) {
-                    return {
-                        pathPattern: route.pathPattern,
-                        targetOriginId: `route-${route.pathPattern}`,
-                        allowedMethods: ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"],
-                        cachedMethods: ["HEAD", "GET"],
-                        cachePolicyId: aws.cloudfront.getCachePolicyOutput({ name: "Managed-CachingDisabled" }).id,
-                        compress: true,
-                        viewerProtocolPolicy: "redirect-to-https",
-                        originRequestPolicyId: aws.cloudfront.getOriginRequestPolicyOutput({ name: 'Managed-AllViewerExceptHostHeader' }).id,
-                        functionAssociations: [apiViewerRequest, stdViewerResponse],
-                    };
-                } else if (route.type == RouteType.S3) {
-                    return {
-                        ...stdCacheBehavior(),
-                        pathPattern: route.pathPattern,
-                        targetOriginId: `route-${route.pathPattern}`,
-                        functionAssociations: [s3ViewerRequest, route.immutable ? immutableViewerResponse : stdViewerResponse],
-                    };
-                } else if (route.type == RouteType.SingleAsset) {
-                    return {
-                        ...stdCacheBehavior(),
-                        pathPattern: route.pathPattern,
-                        targetOriginId: `route-${route.pathPattern}`,
-                        functionAssociations: [s3ViewerRequest, stdViewerResponse],
-                    };
-                } else {
-                    throw new Error(`Unsupported route ${route}`);
-                }
-            }) as ((route: Route) => aws.types.input.cloudfront.DistributionOrderedCacheBehavior)),
-            defaultCacheBehavior: {
-                ...stdCacheBehavior(),
-                targetOriginId: `route-/`,
-                functionAssociations: [s3ViewerRequest, stdViewerResponse],
-            },
+            orderedCacheBehaviors: args.routes.slice(0, -1).map(route => ({
+                pathPattern: route.pathPattern,
+                ...getCacheBehavior(route),
+            })),
+            defaultCacheBehavior: getCacheBehavior(defaultRoute),
             priceClass: "PriceClass_100",
             restrictions: {
                 geoRestriction: {
@@ -172,7 +193,8 @@ export class StaticWebsite extends pulumi.ComponentResource {
             waitForDeployment: false,
         }, {
             parent: this,
-            deleteBeforeReplace: true
+            deleteBeforeReplace: true,
+            aliases: [{ parent: pulumi.rootStackResource }], // if there was a existing resource with the same name, use it
         });
 
         // request read access to S3
@@ -193,7 +215,10 @@ export class StaticWebsite extends pulumi.ComponentResource {
 
         singleAssetBucket.setupAccessPolicy(this.distribution.arn);
 
-        createCloudfrontDnsRecords(name, this.distribution, zone.id, args.subDomain, { parent: this });
+        createCloudfrontDnsRecords(name, this.distribution, zone.id, args.subDomain, {
+            parent: this,
+            aliases: [{ parent: pulumi.rootStackResource }], // if there was a existing resource with the same name, use it
+        });
     }
 }
 
@@ -209,7 +234,7 @@ export interface WebsiteArgs {
      */
     readonly basicAuth?: BasicAuthArgs;
 
-    readonly hostedZoneId: string;
+    readonly hostedZoneId: pulumi.Input<string>;
 
     /**
      * Specifies the routes to be served.
@@ -226,12 +251,28 @@ export interface WebsiteArgs {
     readonly subDomain?: string;
 }
 
-export type Route = LambdaRoute | S3Route | SingleAssetRoute;
+export type Route = CustomRoute | LambdaRoute | S3Route | SingleAssetRoute;
 
 export enum RouteType {
+    Custom,
     Lambda,
     SingleAsset,
     S3,
+}
+
+/**
+ * Serves the given route from a custom server.
+ */
+export type CustomRoute = {
+    readonly type: RouteType.Custom;
+    readonly pathPattern: string;
+
+    readonly originDomainName: pulumi.Input<string>;
+
+    /**
+     * Caching policy. By default, caching is disabled.
+     */
+    readonly cachePolicyId?: pulumi.Input<string>;
 }
 
 /**
@@ -262,6 +303,7 @@ export type LambdaRoute = {
 
 /**
  * Serves the given route from a S3 bucket location.
+ * Automatically handles URL rewrites, so that when the user loads /product, it will internally load /product/index.html from S3.
  * 
  * You must make sure the bucket as a resource policy that allows read access from CloudFront.
  * If you're using S3ArtifactStore, this can be achieved by calling it's createBucketPolicy method.
@@ -296,7 +338,7 @@ export interface BasicAuthArgs {
 /**
  * Simple cache behavior for S3 that caches responses for up to one minute.
  */
-function stdCacheBehavior() {
+function s3CacheBehavior() {
     return {
         allowedMethods: ["HEAD", "GET"],
         cachedMethods: ["HEAD", "GET"],

@@ -12,9 +12,9 @@
     "test": "jest"
   },
   "dependencies": {
-    "@pulumi/aws": "^6",
-    "@pulumi/aws-native": "^0.108.0",
-    "@pulumi/pulumi": "^3"
+    "@pulumi/aws": "^6.41.0",
+    "@pulumi/aws-native": "^0.94.0",
+    "@pulumi/pulumi": "^3.103.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
