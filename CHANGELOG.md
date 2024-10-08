@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v1.1.0...v1.2.0) (2024-10-08)
+
+
+### Features
+
+* StaticWebsite returning more relaxed referrer-policy header and removed x-frame-options header ([9c088aa](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/9c088aa42f4e602dc1f1ad4b3366bb6744253adf))
+
 ## [1.1.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v1.0.0...v1.1.0) (2024-10-04)
 
 
