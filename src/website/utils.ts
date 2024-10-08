@@ -26,3 +26,19 @@ export function createCloudfrontDnsRecords(name: string, distribution: aws.cloud
         }]
     }, { ...opts, deleteBeforeReplace: true });
 }
+
+export const defaultSecurityHeadersConfig: aws.types.input.cloudfront.ResponseHeadersPolicySecurityHeadersConfig = {
+    strictTransportSecurity: { // informs browsers that the site should only be accessed using HTTPS
+        accessControlMaxAgeSec: 31536000, // 1 year
+        includeSubdomains: true,
+        preload: true,
+        override: true,
+    },
+    contentTypeOptions: { // blocks styles and scripts from loading if MIME type is incorrect
+        override: true,
+    },
+    referrerPolicy: { // send only the origin for cross origin requests and if HTTPS
+        referrerPolicy: 'strict-origin-when-cross-origin',
+        override: false,
+    },
+};

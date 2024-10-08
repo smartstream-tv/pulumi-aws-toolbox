@@ -26,15 +26,7 @@ abstract class CloudfrontChainedFunction {
         return this;
     }
 
-    build() {
-        const func = this.createFunction();
-        return {
-            eventType: this.eventType,
-            functionArn: func.arn,
-        };
-    }
-
-    private createFunction() {
+    create() {
         const handlersDir = `${__dirname}/../../resources/cloudfront-function-handlers/${this.eventType}`;
 
         const handlerNames = this.handlerChain.map(handler => handler.name).join();
@@ -122,6 +114,7 @@ export class ViewerResponseFunction extends CloudfrontChainedFunction {
     }
 
     /**
+     * Deprecated.
      * Adds several common security-related HTTP headers to the response, see the handler code for details.
      */
     withSecurityHeaders() {

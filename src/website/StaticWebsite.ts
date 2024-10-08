@@ -3,8 +3,8 @@ import * as pulumi from "@pulumi/pulumi";
 import { CloudfrontLogBucket } from "./CloudfrontLogBucket";
 import { S3Location } from "./S3Location";
 import { SingleAssetBucket } from "./SingleAssetBucket";
-import { ViewerRequestFunction, ViewerResponseFunction } from "./cloudfront-function";
-import { createCloudfrontDnsRecords } from "./utils";
+import { ViewerRequestFunction } from "./cloudfront-function";
+import { createCloudfrontDnsRecords, defaultSecurityHeadersConfig } from "./utils";
 
 /**
  * Opinionated component for hosting a website.
@@ -29,28 +29,42 @@ export class StaticWebsite extends pulumi.ComponentResource {
         const zone = aws.route53.Zone.get("zone", args.hostedZoneId);
         this.domain = args.subDomain ? pulumi.interpolate`${args.subDomain}.${zone.name}` : zone.name;
 
-        const s3ViewerRequest = args.basicAuth ?
+        const stdViewerRequestFunc = args.basicAuth ?
+            new ViewerRequestFunction(`${name}-std-viewer-request`, this)
+                .withBasicAuth(args.basicAuth.username, args.basicAuth.password)
+                .create()
+            : undefined;
+
+        const s3ViewerRequestFunc = args.basicAuth ?
             new ViewerRequestFunction(`${name}-s3-viewer-request`, this)
                 .withBasicAuth(args.basicAuth.username, args.basicAuth.password)
                 .withIndexRewrite()
-                .build() :
-            new ViewerRequestFunction(`${name}-s3-viewer-request`, this)
+                .create()
+            : new ViewerRequestFunction(`${name}-s3-viewer-request`, this)
                 .withIndexRewrite()
-                .build();
+                .create();
 
-        const apiViewerRequest = args.basicAuth ?
-            new ViewerRequestFunction(`${name}-api-viewer-request`, this)
-                .withBasicAuth(args.basicAuth.username, args.basicAuth.password)
-                .build() :
-            new ViewerRequestFunction(`${name}-api-viewer-request`, this)
-                .build();
+        const defaultResponseHeadersPolicy = new aws.cloudfront.ResponseHeadersPolicy(`${name}-default`, {
+            securityHeadersConfig: defaultSecurityHeadersConfig,
+            customHeadersConfig: {
+                items: [{
+                    header: "cache-control",
+                    value: "no-cache", // response can be stored in browser cache, but must be validated with the server before each re-use
+                    override: false,
+                }],
+            }
+        });
 
-        const stdViewerResponse = new ViewerResponseFunction(`${name}-std-viewer-response`, this)
-            .withCacheControl(false)
-            .withSecurityHeaders()
-            .build();
-
-        const immutableViewerResponse = new ViewerResponseFunction(`${name}-immutable-response`, this).withCacheControl(true).build();
+        const immutableResponseHeadersPolicy = new aws.cloudfront.ResponseHeadersPolicy(`${name}-immutable`, {
+            securityHeadersConfig: defaultSecurityHeadersConfig,
+            customHeadersConfig: {
+                items: [{
+                    header: "cache-control",
+                    value: "public, max-age=2592000, immutable", // response can be stored in browser cache for 30 days
+                    override: true,
+                }],
+            }
+        });
 
         const s3OriginAccessControl = new aws.cloudfront.OriginAccessControl(name, {
             originAccessControlOriginType: "s3",
@@ -86,7 +100,8 @@ export class StaticWebsite extends pulumi.ComponentResource {
                     compress: true,
                     viewerProtocolPolicy: "redirect-to-https",
                     originRequestPolicyId: aws.cloudfront.getOriginRequestPolicyOutput({ name: 'Managed-AllViewer' }).apply(policy => policy.id!!),
-                    functionAssociations: [apiViewerRequest, stdViewerResponse],
+                    responseHeadersPolicyId: defaultResponseHeadersPolicy.id,
+                    functionAssociations: getFunctionAssociations(stdViewerRequestFunc?.arn),
                 };
             } else if (route.type == RouteType.Lambda) {
                 return {
@@ -97,19 +112,22 @@ export class StaticWebsite extends pulumi.ComponentResource {
                     compress: true,
                     viewerProtocolPolicy: "redirect-to-https",
                     originRequestPolicyId: aws.cloudfront.getOriginRequestPolicyOutput({ name: 'Managed-AllViewerExceptHostHeader' }).apply(policy => policy.id!!),
-                    functionAssociations: [apiViewerRequest, stdViewerResponse],
+                    responseHeadersPolicyId: defaultResponseHeadersPolicy.id,
+                    functionAssociations: getFunctionAssociations(stdViewerRequestFunc?.arn),
                 };
             } else if (route.type == RouteType.S3) {
                 return {
                     ...s3CacheBehavior(),
                     targetOriginId: `route-${route.pathPattern}`,
-                    functionAssociations: [s3ViewerRequest, route.immutable ? immutableViewerResponse : stdViewerResponse],
+                    responseHeadersPolicyId: route.immutable ? immutableResponseHeadersPolicy.id : defaultResponseHeadersPolicy.id,
+                    functionAssociations: getFunctionAssociations(route.viewerRequestFunctionArn ?? s3ViewerRequestFunc?.arn),
                 };
             } else if (route.type == RouteType.SingleAsset) {
                 return {
                     ...s3CacheBehavior(),
                     targetOriginId: `route-${route.pathPattern}`,
-                    functionAssociations: [s3ViewerRequest, stdViewerResponse],
+                    responseHeadersPolicyId: defaultResponseHeadersPolicy.id,
+                    functionAssociations: getFunctionAssociations(s3ViewerRequestFunc?.arn),
                 };
             } else {
                 throw new Error(`Unsupported route type ${route}`);
@@ -318,6 +336,14 @@ export type S3Route = {
      * Is false by default.
      */
     readonly immutable?: boolean;
+
+    /**
+     * Optionally, specify your own viewer request function.
+     * If configured, basic auth protection is not available for this route.
+     * 
+     * EXPERIMENTAL! This property may change or be removed again!
+     */
+    readonly viewerRequestFunctionArn?: pulumi.Input<string>;
 }
 
 export type SingleAssetRoute = {
@@ -355,4 +381,11 @@ function s3CacheBehavior() {
         },
         compress: true,
     };
+}
+
+function getFunctionAssociations(viewerRequestFuncArn: pulumi.Input<string> | undefined) {
+    return viewerRequestFuncArn !== undefined ? [{
+        eventType: `viewer-request`,
+        functionArn: viewerRequestFuncArn,
+    }] : undefined;
 }
