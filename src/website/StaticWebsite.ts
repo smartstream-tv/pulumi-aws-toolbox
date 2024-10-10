@@ -53,6 +53,9 @@ export class StaticWebsite extends pulumi.ComponentResource {
                     override: false,
                 }],
             }
+        }, {
+            parent: this,
+            aliases: [{ parent: pulumi.rootStackResource }], // fix for missing parent in 1.2.0
         });
 
         const immutableResponseHeadersPolicy = new aws.cloudfront.ResponseHeadersPolicy(`${name}-immutable`, {
@@ -64,6 +67,9 @@ export class StaticWebsite extends pulumi.ComponentResource {
                     override: true,
                 }],
             }
+        }, {
+            parent: this,
+            aliases: [{ parent: pulumi.rootStackResource }], // fix for missing parent in 1.2.0
         });
 
         const s3OriginAccessControl = new aws.cloudfront.OriginAccessControl(name, {
