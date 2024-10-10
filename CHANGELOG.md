@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v1.2.0...v1.2.1) (2024-10-10)
+
+
+### Bug Fixes
+
+* StaticWebsite, fixed incorrect parent for new ResponseHeadersPolicy resources ([f2a57f8](https://github.com/smartstream-tv/pulumi-aws-toolbox/commit/f2a57f8638bd960266187192f67a1233dd76eb62))
+
 ## [1.2.0](https://github.com/smartstream-tv/pulumi-aws-toolbox/compare/v1.1.0...v1.2.0) (2024-10-08)
 
 
